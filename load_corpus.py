@@ -23,8 +23,8 @@ class load_corpus:
         else:
             print "Network returned null, no network created"
 
-    def get_author_dict():
-        return author_dict
+    def get_author_dict(self):
+        return self.author_dict
     """Save  a named graph in file_with the name provided""" 
     def save_graph(self,file_name, graph_name):
         nx.write_gml(self.network_dict[graph_name], file_name)
@@ -48,9 +48,11 @@ class load_corpus:
         local_name = ""
         local_name += file_id.rjust(7,'0')
         local_name += '.abs'
-        file_name = self.find(local_name,directory)
+        #Read directory and filename
+        find_array = self.find(local_name,directory)
+        file_year = str(find_array[0].split('/')[-1:][0])
+        file_name = find_array[1]
         meta_dict = {}
-        # Must find file, or throw an error
 
         assert(file_name != None)
         #TODO: make more general, not just for stanford HepTh dataset
@@ -77,13 +79,19 @@ class load_corpus:
 
             if section_flag == 2:
                 #print "Reading line into abtract ",line
-                abstract += line.strip('\r\n')
+                abstract += line.replace('\n', ' ' )
                 continue
             if section_flag == 1:
                 items = line.split(':')
-
+                if items[0] == "Date":
+                    #provisional attempt
+                    #dates are non-standard format, but all have the month as the final three 
+                    month_candidates = re.findall("[a-zA-Z]{3}",items[1])
+                    ms = str(month_candidates[-1:][0] )
+                    meta_dict['date'] = self.month_to_num(ms)
+                    meta_dict['year'] = file_year
                 if items[0] == "Title":
-                    print items[1]
+                    #print items[1]
                     meta_dict['title'] = items[1]
 
                 if items[0] == "Author" or items[0] == "Authors":
@@ -93,6 +101,7 @@ class load_corpus:
                     authors = []
                     for count,item in enumerate(author_split):
                         #print item, "item -> #",count
+                        item = item.strip('\n')
                         if (" and " not in item):
                             authors.append(item)
                             #print "Author:", item
@@ -124,8 +133,7 @@ class load_corpus:
                     meta_dict['authors'] = ""
                     for a in authors:
                         meta_dict['authors'] += a + ","
-                    print meta_dict['authors']
-                    x=raw_input("hold")
+                    #print meta_dict['authors']
 
                     #print authors[:]
         #After while loop is finished, save all text in abstract string
@@ -153,10 +161,10 @@ class load_corpus:
             assert(len(items) == 2)
             if (items[0] in graph) == 0:
                 node_dict = self.read_metadata(directory,items[0])
-                graph.add_node(items[0], abstract = node_dict['abstract'], authors = node_dict['authors'])
+                graph.add_node(items[0], abstract = node_dict['abstract'], authors = node_dict['authors'],title=node_dict['title'],date=node_dict['date'],year=node_dict['year'])
             if (items[1] in graph) == 0:
                 node_dict = self.read_metadata(directory,items[1])
-                graph.add_node(items[1], abstract = node_dict['abstract'], authors = node_dict['authors'])
+                graph.add_node(items[1], abstract = node_dict['abstract'], authors = node_dict['authors'],title=node_dict['title'],date=node_dict['date'],year=node_dict['year'])
 
             graph.add_edge(items[0],items[1])
 
@@ -172,5 +180,22 @@ class load_corpus:
     def find(self,name, path):
         for root, dirs, files in os.walk(path):
             if name in files:
-                return os.path.join(root, name)
+                return [root, os.path.join(root, name)]
 
+    def month_to_num(self,month_str):
+
+        m = {
+            'Jan': 1,
+            'Feb': 2,
+            'Mar': 3,
+            'Apr':4,
+            'May':5,
+            'Jun':6,
+            'Jul':7,
+            'Aug':8,
+            'Sep':9,
+            'Oct':10,
+            'Nov':11,
+            'Dec':12
+            }
+        return m[month_str]
