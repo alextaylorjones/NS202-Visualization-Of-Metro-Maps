@@ -1,11 +1,15 @@
 #!/usr/env/python
 import networkx as nx
 import glob
+import sys
+import os
+import re
 
 class load_corpus:
     """A class for loading one or more citation corpus, extracting the metadata from the .abs files 
     and constructing the citation DAG"""
-    network_dict = {};
+    network_dict = {}
+    author_dict = {}
     def __init__(self, file_dir_name, cit_file_name, name, max_size = 40000):
         print "Loading files from:",file_dir_name,"into network ", name
 
@@ -19,20 +23,117 @@ class load_corpus:
         else:
             print "Network returned null, no network created"
 
+    def get_author_dict():
+        return author_dict
+    """Save  a named graph in file_with the name provided""" 
+    def save_graph(self,file_name, graph_name):
+        nx.write_gml(self.network_dict[graph_name], file_name)
+
 
     """Reads graph with name == g_name from network dictionary"""
-    def read_graph(self,g_name):
-        print "Reading graph \'",name,"\' from memory"
+    def get_graph(self,g_name):
+        print "Reading graph \'",g_name,"\' from memory"
 
         #Find named network in class variables
-        if (name in self.network_dict):
-            net = self.network_dict[name];
+        if (g_name in self.network_dict):
+            net = self.network_dict[g_name];
             print "Network loaded : nodes (",len(net),") , edges(",len(net.edges()),")"
             return net
         else:
             print "No network by that name or network not loaded"
             return None
+    """Find file_id.abs in directory specified, returning a dict with following metadata:
+        title, abstract,time,author"""
+    def read_metadata(self,directory,file_id):
+        local_name = ""
+        local_name += file_id.rjust(7,'0')
+        local_name += '.abs'
+        file_name = self.find(local_name,directory)
+        meta_dict = {}
+        # Must find file, or throw an error
 
+        assert(file_name != None)
+        #TODO: make more general, not just for stanford HepTh dataset
+        #try:
+        f = open(file_name,'r')
+        section_flag = 0
+        abstract = ""
+        for i, line in enumerate(f):
+            #IF section flag is 2, read abstract
+            if '\\\\' in line:
+                #If first \\ encountered, then metadata is in next lines
+                if section_flag == 0:
+                    #print "encountering metadata"
+                    section_flag = 1
+                    continue
+                #If second \\ encountered, then abstract follows until end of file
+                elif section_flag == 1:
+                    #print "moving to abstract"
+                    section_flag =2
+                    continue
+                elif section_flag == 2:
+                    #print "Completed reading file: ",file_name
+                    break
+
+            if section_flag == 2:
+                #print "Reading line into abtract ",line
+                abstract += line.strip('\r\n')
+                continue
+            if section_flag == 1:
+                items = line.split(':')
+
+                if items[0] == "Title":
+                    print items[1]
+                    meta_dict['title'] = items[1]
+
+                if items[0] == "Author" or items[0] == "Authors":
+                    #print "Authors line: ", line
+                    line.strip('\r\n')
+                    author_split = items[1].split(',')
+                    authors = []
+                    for count,item in enumerate(author_split):
+                        #print item, "item -> #",count
+                        if (" and " not in item):
+                            authors.append(item)
+                            #print "Author:", item
+                            #print "Adding paper ",file_id," to authorship list"
+                            #Add author 
+                            if (item not in self.author_dict):
+                                self.author_dict[item] = [file_id]
+                            else:
+                                self.author_dict[item].append(file_id)
+                        else:
+                            last_two_auth = item.split(' and ')
+                            #print "last two authors",last_two_auth[:]
+                            assert(len(last_two_auth) == 2)
+                            authors.append(last_two_auth[0])
+                            authors.append(last_two_auth[1])
+                            #Author 1
+                            #print "Author:", last_two_auth[0], "Adding paper ",file_id," to authorship list"
+                            if (last_two_auth[0] not in self.author_dict):
+                                self.author_dict[last_two_auth[0]] = [file_id]
+                            else:
+                                self.author_dict[last_two_auth[0]].append(file_id)
+
+                            #Author 2
+                            #print "Author:", last_two_auth[1], "Adding paper ",file_id," to authorship list"
+                            if (last_two_auth[1] not in self.author_dict):
+                                self.author_dict[last_two_auth[1]] = [file_id]
+                            else:
+                                self.author_dict[last_two_auth[1]].append(file_id)
+                    meta_dict['authors'] = ""
+                    for a in authors:
+                        meta_dict['authors'] += a + ","
+                    print meta_dict['authors']
+                    x=raw_input("hold")
+
+                    #print authors[:]
+        #After while loop is finished, save all text in abstract string
+        meta_dict['abstract'] = abstract
+        return meta_dict
+        #except:
+        #    print "Error opening",file_name
+        #    print "Unexpected error:", sys.exc_info()[:]
     """ Helper function to parse tab-seperated citation file, up to max_size edge entries""" 
     def parse_citation_network(self,cit_file_name,directory, max_size):
         #Initialize DAG to load citation edges into
@@ -41,50 +142,35 @@ class load_corpus:
         full_filename += directory
         full_filename += cit_file_name
         print "Parsing citation file : '\'", full_filename,"\'"
-        try:
-            f = open(full_filename,'r')
-            for i,line in enumerate(f):
-                #Strip comments
-                if (line[0] == "#"):
-                    continue
-                line = line.rstrip('\r\n')
-                items = line.split('\t')
-                assert(len(items) == 2)
-                if (items[0] in graph) == 0:
-                    node_dict = self.read_metadata(directory,items[0])
-                    graph.add_node(items[0], time = node_dict['time'], abstract = node_dict['abstract'], author = node_dict['author'])
-                    
-                if (items[1] in graph) == 0:
-                    graph.add_node(items[1])
-                    node_dict = self.read_metadata(directory,items[1])
-                    graph.add_node(items[1], time = node_dict['time'], abstract = node_dict['abstract'], author = node_dict['author'])
-                    
+        #try:
+        f = open(full_filename,'r')
+        for i,line in enumerate(f):
+            #Strip comments
+            if (line[0] == "#"):
+                continue
+            line = line.rstrip('\r\n')
+            items = line.split('\t')
+            assert(len(items) == 2)
+            if (items[0] in graph) == 0:
+                node_dict = self.read_metadata(directory,items[0])
+                graph.add_node(items[0], abstract = node_dict['abstract'], authors = node_dict['authors'])
+            if (items[1] in graph) == 0:
+                node_dict = self.read_metadata(directory,items[1])
+                graph.add_node(items[1], abstract = node_dict['abstract'], authors = node_dict['authors'])
 
-                graph.add_edge(items[0],items[1])
+            graph.add_edge(items[0],items[1])
 
-            
-                #Step if reached max number of edges to add.
-                if (i > max_size):
-                    break
-            print graph.nodes()
-            x=raw_input()
-            return graph
-        except:
-            print "Exception thrown in loading citation file, ", full_filename
-            return None
-        """Find file_id.abs in directory specified, returning a dict with following metadata:
-            title, abstract,time,author"""
-        def read_metadata(self,directory,file_id):
-            local_name = ""
-            local_name += file_id
-            local_name += '.abs'
-            file_name = self.find(local_name,directory)
+            #Step if reached max number of edges to add.
+            if (i > max_size):
+                break
+        return graph
+        #except:
+        #print "Exception thrown in loading citation file, ", full_filename
+        #print "Unexpected error:", sys.exc_info()[0]
+        #return None
 
-            # Must find file, or throw an error
-            assert(file_name != None)
-
-        def find(name, path):
-            for root, dirs, files in os.walk(path):
-                if name in files:
-                    return os.path.join(root, name)
+    def find(self,name, path):
+        for root, dirs, files in os.walk(path):
+            if name in files:
+                return os.path.join(root, name)
 
