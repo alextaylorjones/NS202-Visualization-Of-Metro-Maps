@@ -8,7 +8,8 @@ graph = loader.get_graph('stanford-hepth')
 
 #Create the influence graphs based 
 #hardcoded concepts for now
-concepts = ['boson','symmetry','SO']
+concepts = ['boson','symmetry','SO','string','function']
 influence = influence_graph(graph, concepts)
 influence.construct_influence_graph(loader.get_author_dict())
-influence.visualize_concept_graph('SO')
+influence.compute_document_pair_influences(0.1)
+

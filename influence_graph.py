@@ -1,5 +1,3 @@
-import networkx as nx
-import re
 import matplotlib.pyplot as plt
 import random as rand
 import math
@@ -133,10 +131,12 @@ class influence_graph:
     def compute_document_pair_influences(self,delta):
         #See thm 1 - Beyond Keyword Influence
         num_samples = (2/delta*delta)*math.log((len(self.concept_graph.nodes()*(len(self.concept_graph.nodes())-1))/delta) )
+        print "Using ", num_samples," to compute pairwise differences"
+
         for c in self.concepts:
             pair_influence_prob = {}
 
-            #Uniformly sample edges of c
+            #Uniformly sample edges of content graph according to weight of egdes of type c
             sample = self.sample_content_graph(c)
 
             for u in sample.nodes():
@@ -144,7 +144,7 @@ class influence_graph:
                     if (u == v or (v,u) in pair_influence_prob):
                         continue
 
-    """Uniformly sample content graph"""
+    """Uniformly sample content graph edges, using weights from the concept given"""
     def sample_content_graph(self,concept):
         sample = nx.DiGraph()
         for e in self.concept_graph.edges():
