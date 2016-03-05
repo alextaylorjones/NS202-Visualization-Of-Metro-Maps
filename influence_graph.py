@@ -1,19 +1,25 @@
+import networkx as nx
 import matplotlib.pyplot as plt
 import random as rand
 import math
+import re
+from pdb import set_trace as bp
 
 class influence_graph:
     citation_graph = None
     concepts = None
     concept_graph = None
+    influence_graph = None
 
     def __init__(self,graph, _concepts):
         self.citation_graph = graph
         self.concepts = _concepts
         self.concept_graph = nx.DiGraph()
+        self.influence_graph = nx.Graph()
 
         for e in graph.edges():
             self.concept_graph.add_edge(e[0],e[1],weights = dict((c,0) for c in _concepts))
+            self.influence_graph.add_edge(e[0],e[1],weights = dict((c,0) for c in _concepts))
 
     """ Call this once on a set of concepts to construct the influence graph from the concepts """
     def construct_influence_graph(self,author_dict):
@@ -33,7 +39,7 @@ class influence_graph:
                 concept_dict = self.citation_graph.node[v]['concept_freq']
                 concept_dict[c] = concept_match_num
                 concepts_matched += concept_match_num
-            print "Concept freq: ",self.citation_graph.node[v]['concept_freq'], "total - ", concepts_matched
+            print "Concept freq(",self.citation_graph.node[v]['file_name'],"): ",self.citation_graph.node[v]['concept_freq'], "total - ", concepts_matched
             self.citation_graph.node[v]['doc-length'] = concepts_matched
 
        #Use node attributes to create an influence graph
@@ -60,18 +66,16 @@ class influence_graph:
             #note: we use Z to normalize weights for concept graph
             for c in self.concepts:
                 #Sum over all cited papers of concept c frequency / doc length
-                #print "Concept:",c,"-freq->", self.citation_graph.node[y]['concept_freq'][c]
-
                 sum_nrj = 0
                 for cited in y_cited:
-                    print self.citation_graph.node[cited]
-                    x = raw_input()
-                    sum_nrj += self.citation_graph.node[cited]['concept_freq'][c] / (self.citation_graph.node[cited]['doc-length'] + 1)
+                    sum_nrj += float(self.citation_graph.node[cited]['concept_freq'][c]) / (self.citation_graph.node[cited]['doc-length'] + 1)
+
+                #Sum over all coauthored (prev) papers
                 if (l > 0):
                     #Sum over all prev papers of concept c frequency /doc length
                     sum_nbj = 0
                     for coauth in prev_papers:
-                        sum_nrj += (self.citation_graph.node[coauth]['concept_freq'][c] / self.citation_graph.node[coauth]['doc-length'] + 1)
+                        sum_nrj += float(self.citation_graph.node[coauth]['concept_freq'][c]) / (self.citation_graph.node[coauth]['doc-length'] + 1)
                 #Novelty cost assumed 0 for now
                 #TODO: update
                 novel_c = 0
@@ -90,6 +94,8 @@ class influence_graph:
                 for c in self.concepts:
                     if Z[c] != 0:
                         self.concept_graph[ri][y]['weights'][c] = (1/Z[c])*(self.citation_graph.node[ri]['concept_freq'][c])/(self.citation_graph.node[ri]['doc-length']+1)
+                    if Z[c] == 0:
+                        self.concept_graph[ri][y]['weights'][c] = 0
 
             #Calculate the weight of each concept from previously authored papers, if they exist
             if l > 0:
@@ -99,11 +105,13 @@ class influence_graph:
                             if Z[c] != 0:
                                 self.concept_graph[bi][y]['weights'][c] = (1/(Z[c] * len(prev_papers)))*(self.citation_graph.node[bi]['concept_freq'][c])/(self.citation_graph.node[bi]['doc-length']+1)
 
+                            if Z[c] == 0:
+                                self.concept_graph[bi][y]['weights'][c] = 0
 
         #Sanity check
-        print "Weights for edges"
-        for v in self.concept_graph.edges():
-            print " ->", self.concept_graph[v[0]][v[1]]['weights'],v
+        #print "Check Weights for edges in concept graph"
+        #for v in self.concept_graph.edges():
+        #    print " ->", self.concept_graph[v[0]][v[1]]['weights'],v
 
     """ Find papers in citation network which have the same author as y but came before y"""
     def get_previously_written_papers(self,y, author_dict):
@@ -130,28 +138,59 @@ class influence_graph:
     to generate sample number"""
     def compute_document_pair_influences(self,delta):
         #See thm 1 - Beyond Keyword Influence
-        num_samples = (2/delta*delta)*math.log((len(self.concept_graph.nodes()*(len(self.concept_graph.nodes())-1))/delta) )
-        print "Using ", num_samples," to compute pairwise differences"
+        num_samples =int( math.ceil((2/delta*delta)*math.log((len(self.concept_graph.nodes()*(len(self.concept_graph.nodes())-1))/delta) )))
+        print "Using ", num_samples," graph samples to compute pairwise differences"
 
         for c in self.concepts:
-            pair_influence_prob = {}
 
-            #Uniformly sample edges of content graph according to weight of egdes of type c
-            sample = self.sample_content_graph(c)
+            all_pairs_ancestor_count = {}
 
-            for u in sample.nodes():
-                for v in sample.nodes():
-                    if (u == v or (v,u) in pair_influence_prob):
-                        continue
+            #Compute graph samples and take influence readings
+            for x in range(num_samples):
+
+                #Uniformly sample edges of content graph according to weight of egdes of type c
+                sample = self.sample_concept_graph(c)
+
+                for u in sample.nodes():
+                    for v in sample.nodes():
+                        # Only use (u,v) pairs so as to not double count
+                        if (u == v or (v,u) in all_pairs_ancestor_count):
+                            continue
+
+                        #Setup dictionary entry
+                        if ( (u,v) not in all_pairs_ancestor_count):
+                            all_pairs_ancestor_count[(u,v)] = 0
+
+                        #First approach, using nx libs, slow but it works
+                        ancestors_u = nx.ancestors(sample,u)
+                        ancestors_v = nx.ancestors(sample,v)
+
+                        #Look for one common ancestors, break and add to count if found
+                        common_anc_found = 0
+                        for anc in ancestors_u:
+                            if anc in ancestors_v:
+                                common_anc_found = 1
+                                break
+                        if common_anc_found == 1:
+                            all_pairs_ancestor_count[(u,v)] = all_pairs_ancestor_count[(u,v)] + 1
+
+            #Iterate through all pairs and add weights to the influence graph
+            for u,v in all_pairs_ancestor_count.keys():
+                #Add u,v weight wrt concept c according to number of samples counted that had a common ancestor
+                self.influence_graph.edge[u][v]['weights'][c] = all_pairs_ancestor_count[(u,v)] / num_samples
+                print "Edge ",(u,v)," has weight ", all_pairs_ancestor_count[(u,v)] / num_samples, "wrt to concept (",c,")."
+
+        #end for (concept loop)
+
+
 
     """Uniformly sample content graph edges, using weights from the concept given"""
-    def sample_content_graph(self,concept):
+    def sample_concept_graph(self,concept):
         sample = nx.DiGraph()
         for e in self.concept_graph.edges():
-            #print "edge",e," : weight ",self.concept_graph[e[0]][e[1]]['weights']
-            if len(self.concept_graph[e[0]][e[1]]['weights'].keys()) == 0:
-                continue
-            elif rand.random() > self.concept_graph[e[0]][e[1]]['weights'][concept]:
+            print "Sampling edge",e," : weight ",self.concept_graph[e[0]][e[1]]['weights'][concept]
+            if rand.random() < self.concept_graph[e[0]][e[1]]['weights'][concept]:
+                print "->Edge Sampled"
                 sample.add_edge(e[0],e[1])
 
     def load_document_pair_influences(self,filename):
