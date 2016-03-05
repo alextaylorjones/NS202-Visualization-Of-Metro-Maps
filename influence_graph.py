@@ -19,7 +19,10 @@ class influence_graph:
 
         for e in graph.edges():
             self.concept_graph.add_edge(e[0],e[1],weights = dict((c,0) for c in _concepts))
-            self.influence_graph.add_edge(e[0],e[1],weights = dict((c,0) for c in _concepts))
+        for u in graph.nodes():
+            for v in graph.nodes():
+            self.influence_graph.add_edge(u,v,weights = dict((c,0) for c in _concepts))
+
 
     """ Call this once on a set of concepts to construct the influence graph from the concepts """
     def construct_influence_graph(self,author_dict):
@@ -95,18 +98,18 @@ class influence_graph:
                     if Z[c] != 0:
                         self.concept_graph[ri][y]['weights'][c] = (1/Z[c])*(self.citation_graph.node[ri]['concept_freq'][c])/(self.citation_graph.node[ri]['doc-length']+1)
                     if Z[c] == 0:
-                        self.concept_graph[ri][y]['weights'][c] = 0
+                        self.concept_graph[ri][y]['weights'][c]  = 0
 
             #Calculate the weight of each concept from previously authored papers, if they exist
             if l > 0:
                 for bi in prev_papers:
                         self.concept_graph.add_edge(bi,y, weights = {})
                         for c in concepts:
+                            if Z[c] == 0:
+                                self.concept_graph[bi][y]['weights'][c]  = 0
                             if Z[c] != 0:
                                 self.concept_graph[bi][y]['weights'][c] = (1/(Z[c] * len(prev_papers)))*(self.citation_graph.node[bi]['concept_freq'][c])/(self.citation_graph.node[bi]['doc-length']+1)
 
-                            if Z[c] == 0:
-                                self.concept_graph[bi][y]['weights'][c] = 0
 
         #Sanity check
         #print "Check Weights for edges in concept graph"
@@ -154,31 +157,34 @@ class influence_graph:
                 for u in sample.nodes():
                     for v in sample.nodes():
                         # Only use (u,v) pairs so as to not double count
-                        if (u == v or (v,u) in all_pairs_ancestor_count):
+                        if (u == v or (v,u) in all_pairs_descendant_count):
                             continue
 
                         #Setup dictionary entry
-                        if ( (u,v) not in all_pairs_ancestor_count):
-                            all_pairs_ancestor_count[(u,v)] = 0
+                        if ( (u,v) not in all_pairs_descendant_count):
+                            all_pairs_descendant_count[(u,v)] = 0
 
                         #First approach, using nx libs, slow but it works
-                        ancestors_u = nx.ancestors(sample,u)
-                        ancestors_v = nx.ancestors(sample,v)
+                        #
+                        descendants_u = nx.descendants(sample,u)
+                        descendants_v = nx.descendants(sample,v)
+                        descendants_u.add(u)
+                        descendants_v.add(v)
 
-                        #Look for one common ancestors, break and add to count if found
-                        common_anc_found = 0
-                        for anc in ancestors_u:
-                            if anc in ancestors_v:
-                                common_anc_found = 1
+                        #Look for one common descendants, break and add to count if found
+                        common_desc_found = 0
+                        for desc in descendants_u:
+                            if desc in descendants_v:
+                                common_desc_found = 1
                                 break
-                        if common_anc_found == 1:
-                            all_pairs_ancestor_count[(u,v)] = all_pairs_ancestor_count[(u,v)] + 1
+                        if common_desc_found == 1:
+                            all_pairs_descendant_count[(u,v)] = all_pairs_descendant_count[(u,v)] + 1
 
             #Iterate through all pairs and add weights to the influence graph
-            for u,v in all_pairs_ancestor_count.keys():
-                #Add u,v weight wrt concept c according to number of samples counted that had a common ancestor
-                self.influence_graph.edge[u][v]['weights'][c] = all_pairs_ancestor_count[(u,v)] / num_samples
-                print "Edge ",(u,v)," has weight ", all_pairs_ancestor_count[(u,v)] / num_samples, "wrt to concept (",c,")."
+            for u,v in all_pairs_descendant_count.keys():
+                #Add u,v weight wrt concept c according to number of samples counted that had a common descendant
+                self.influence_graph.edge[u][v]['weights'][c] = all_pairs_descendant_count[(u,v)] / num_samples
+                print "Edge ",(u,v)," has weight ", all_pairs_descendant_count[(u,v)] / num_samples, "wrt to concept (",c,")."
 
         #end for (concept loop)
 
@@ -189,8 +195,9 @@ class influence_graph:
         sample = nx.DiGraph()
         for e in self.concept_graph.edges():
             print "Sampling edge",e," : weight ",self.concept_graph[e[0]][e[1]]['weights'][concept]
-            if rand.random() < self.concept_graph[e[0]][e[1]]['weights'][concept]:
-                print "->Edge Sampled"
+            if len(self.concept_graph[e[0]][e[1]]['weights'].keys()) == 0:
+                continue
+            elif rand.random() > self.concept_graph[e[0]][e[1]]['weights'][concept]:
                 sample.add_edge(e[0],e[1])
 
     def load_document_pair_influences(self,filename):
