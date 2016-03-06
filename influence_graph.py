@@ -21,7 +21,7 @@ class influence_graph:
             self.concept_graph.add_edge(e[0],e[1],weights = dict((c,0) for c in _concepts))
         for u in graph.nodes():
             for v in graph.nodes():
-            self.influence_graph.add_edge(u,v,weights = dict((c,0) for c in _concepts))
+                self.influence_graph.add_edge(u,v,weights = dict((c,0) for c in _concepts))
 
 
     """ Call this once on a set of concepts to construct the influence graph from the concepts """
@@ -48,11 +48,13 @@ class influence_graph:
        #Use node attributes to create an influence graph
        #Using notation from BEyond Keyword Search 2010
         for y in self.citation_graph.nodes():
-            #Get cited papers for y
-            y_in_edges = self.citation_graph.in_edges(y)
-            y_cited = [e[1] for e in y_in_edges]
+            #Get the papers that y cited 
+            y_out_edges = self.citation_graph.out_edges(y)
+            #print y,y_out_edges
+            #x=raw_input()
+            y_cited = [e[1] for e in y_out_edges]
             if len(y_cited) == 0:
-                print "No citations for ",y
+                print "",y," has no citations in the network"
                 continue
             #Get previous papers written by author of y using helper methods
             prev_papers = self.get_previously_written_papers(y,author_dict)
@@ -96,7 +98,7 @@ class influence_graph:
 
                 for c in self.concepts:
                     if Z[c] != 0:
-                        self.concept_graph[ri][y]['weights'][c] = (1/Z[c])*(self.citation_graph.node[ri]['concept_freq'][c])/(self.citation_graph.node[ri]['doc-length']+1)
+                        self.concept_graph[ri][y]['weights'][c] = (1/Z[c])*float((self.citation_graph.node[ri]['concept_freq'][c]))/(self.citation_graph.node[ri]['doc-length']+1)
                     if Z[c] == 0:
                         self.concept_graph[ri][y]['weights'][c]  = 0
 
@@ -108,7 +110,7 @@ class influence_graph:
                             if Z[c] == 0:
                                 self.concept_graph[bi][y]['weights'][c]  = 0
                             if Z[c] != 0:
-                                self.concept_graph[bi][y]['weights'][c] = (1/(Z[c] * len(prev_papers)))*(self.citation_graph.node[bi]['concept_freq'][c])/(self.citation_graph.node[bi]['doc-length']+1)
+                                self.concept_graph[bi][y]['weights'][c] = (1/(Z[c] * len(prev_papers)))*(float(self.citation_graph.node[bi]['concept_freq'][c]))/(self.citation_graph.node[bi]['doc-length']+1)
 
 
         #Sanity check
@@ -146,12 +148,12 @@ class influence_graph:
 
         for c in self.concepts:
 
-            all_pairs_ancestor_count = {}
+            all_pairs_descendant_count = {}
 
             #Compute graph samples and take influence readings
             for x in range(num_samples):
 
-                #Uniformly sample edges of content graph according to weight of egdes of type c
+                #Uniformly sample edges of concept graph according to weight of egdes of type c
                 sample = self.sample_concept_graph(c)
 
                 for u in sample.nodes():
@@ -180,11 +182,11 @@ class influence_graph:
                         if common_desc_found == 1:
                             all_pairs_descendant_count[(u,v)] = all_pairs_descendant_count[(u,v)] + 1
 
-            #Iterate through all pairs and add weights to the influence graph
+            #Iterate through all pairs and add weights to the influence graph (wrt to concept c)
             for u,v in all_pairs_descendant_count.keys():
                 #Add u,v weight wrt concept c according to number of samples counted that had a common descendant
-                self.influence_graph.edge[u][v]['weights'][c] = all_pairs_descendant_count[(u,v)] / num_samples
-                print "Edge ",(u,v)," has weight ", all_pairs_descendant_count[(u,v)] / num_samples, "wrt to concept (",c,")."
+                self.influence_graph.edge[u][v]['weights'][c] = float(all_pairs_descendant_count[(u,v)]) / num_samples
+                #print "Node pair ",(u,v)," has weight ", float(all_pairs_descendant_count[(u,v)]) / num_samples, "wrt to concept (",c,")."
 
         #end for (concept loop)
 
@@ -194,11 +196,13 @@ class influence_graph:
     def sample_concept_graph(self,concept):
         sample = nx.DiGraph()
         for e in self.concept_graph.edges():
-            print "Sampling edge",e," : weight ",self.concept_graph[e[0]][e[1]]['weights'][concept]
-            if len(self.concept_graph[e[0]][e[1]]['weights'].keys()) == 0:
-                continue
-            elif rand.random() > self.concept_graph[e[0]][e[1]]['weights'][concept]:
+            #print "Sampling edge",e," : weight ",self.concept_graph[e[0]][e[1]]['weights'][concept]
+            if rand.random() < self.concept_graph[e[0]][e[1]]['weights'][concept]:
                 sample.add_edge(e[0],e[1])
+                #print "Edge sampled!"
+        return sample
 
     def load_document_pair_influences(self,filename):
         print "empty"
+    def get_influence_graph():
+        return self.influence_graph()
