@@ -1,9 +1,14 @@
 from flask import Flask, jsonify, render_template, request
+from utils import random_network, convert_networkx
 app = Flask(__name__)
 
-@app.route("/_random_graph")
+@app.route("/_get_cy_data")
 def random():
-    pass
+    print "called get_cy_data"
+    r = random_network()
+    c = convert_networkx(r)['elements']
+
+    return jsonify(c)
 
 @app.route("/")
 def index():
