@@ -204,5 +204,5 @@ class influence_graph:
 
     def load_document_pair_influences(self,filename):
         print "empty"
-    def get_influence_graph():
-        return self.influence_graph()
+    def get_influence_graph(self):
+        return self.influence_graph
