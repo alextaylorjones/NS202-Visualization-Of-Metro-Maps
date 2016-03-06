@@ -43,7 +43,7 @@ class influence_graph:
                 concept_dict[c] = concept_match_num
                 concepts_matched += concept_match_num
             print "Concept freq(",self.citation_graph.node[v]['file_name'],"): ",self.citation_graph.node[v]['concept_freq'], "total - ", concepts_matched
-            self.citation_graph.node[v]['doc-length'] = concepts_matched
+            self.citation_graph.node[v]['doc_length'] = concepts_matched
 
        #Use node attributes to create an influence graph
        #Using notation from BEyond Keyword Search 2010
@@ -54,7 +54,7 @@ class influence_graph:
             #x=raw_input()
             y_cited = [e[1] for e in y_out_edges]
             if len(y_cited) == 0:
-                print "",y," has no citations in the network"
+                #print "",y," has no citations in the network"
                 continue
             #Get previous papers written by author of y using helper methods
             prev_papers = self.get_previously_written_papers(y,author_dict)
@@ -73,14 +73,14 @@ class influence_graph:
                 #Sum over all cited papers of concept c frequency / doc length
                 sum_nrj = 0
                 for cited in y_cited:
-                    sum_nrj += float(self.citation_graph.node[cited]['concept_freq'][c]) / (self.citation_graph.node[cited]['doc-length'] + 1)
+                    sum_nrj += float(self.citation_graph.node[cited]['concept_freq'][c]) / (self.citation_graph.node[cited]['doc_length'] + 1)
 
                 #Sum over all coauthored (prev) papers
                 if (l > 0):
                     #Sum over all prev papers of concept c frequency /doc length
                     sum_nbj = 0
                     for coauth in prev_papers:
-                        sum_nrj += float(self.citation_graph.node[coauth]['concept_freq'][c]) / (self.citation_graph.node[coauth]['doc-length'] + 1)
+                        sum_nrj += float(self.citation_graph.node[coauth]['concept_freq'][c]) / (self.citation_graph.node[coauth]['doc_length'] + 1)
                 #Novelty cost assumed 0 for now
                 #TODO: update
                 novel_c = 0
@@ -91,14 +91,14 @@ class influence_graph:
 
                 # No concept c found in y_cited, no need to add to concept graph, Since weight for edge will be 0
                 #Note: if we care about this data, regardless of edge weight, then we may include it in graph with 0 weight(not implemented here)
-            #TODO: undo hack of 'doc-length' +1 to account for no concept match in abstract
+            #TODO: undo hack of 'doc_length' +1 to account for no concept match in abstract
             #Calculate the weight of each concept for the edges in the citation graph
             for ri in y_cited:
                 self.concept_graph.add_edge(ri,y, weights = {})
 
                 for c in self.concepts:
                     if Z[c] != 0:
-                        self.concept_graph[ri][y]['weights'][c] = (1/Z[c])*float((self.citation_graph.node[ri]['concept_freq'][c]))/(self.citation_graph.node[ri]['doc-length']+1)
+                        self.concept_graph[ri][y]['weights'][c] = (1/Z[c])*float((self.citation_graph.node[ri]['concept_freq'][c]))/(self.citation_graph.node[ri]['doc_length']+1)
                     if Z[c] == 0:
                         self.concept_graph[ri][y]['weights'][c]  = 0
 
@@ -110,7 +110,7 @@ class influence_graph:
                             if Z[c] == 0:
                                 self.concept_graph[bi][y]['weights'][c]  = 0
                             if Z[c] != 0:
-                                self.concept_graph[bi][y]['weights'][c] = (1/(Z[c] * len(prev_papers)))*(float(self.citation_graph.node[bi]['concept_freq'][c]))/(self.citation_graph.node[bi]['doc-length']+1)
+                                self.concept_graph[bi][y]['weights'][c] = (1/(Z[c] * len(prev_papers)))*(float(self.citation_graph.node[bi]['concept_freq'][c]))/(self.citation_graph.node[bi]['doc_length']+1)
 
 
         #Sanity check

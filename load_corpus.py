@@ -91,7 +91,16 @@ class load_corpus:
                     #dates are non-standard format, but all have the month as the final three 
                     month_candidates = re.findall("[a-zA-Z]{3}",items[1])
                     ms = str(month_candidates[-1:][0] )
-                    meta_dict['date'] = self.month_to_num(ms)
+                    for month_cand in month_candidates:
+                      month = self.month_to_num(ms)
+                      if (month != -1):
+                        break
+                      else:
+                        print line, month_cand, "not a month"
+                    if (month == -1):
+                      print "Inconsistency in dating file", file_name, " @ ",line
+                      month = 1
+                    meta_dict['date'] = month
                     meta_dict['year'] = file_year
                 if items[0] == "Title":
                     #print items[1]
@@ -117,6 +126,10 @@ class load_corpus:
                         else:
                             last_two_auth = item.split(' and ')
                             #print "last two authors",last_two_auth[:]
+                            if (len(last_two_auth) != 2):
+                                print "Last two authors not of length 2:, ",line
+                                authors.append("missing")
+                                break
                             assert(len(last_two_auth) == 2)
                             authors.append(last_two_auth[0])
                             authors.append(last_two_auth[1])
@@ -181,9 +194,17 @@ class load_corpus:
         #return None
 
     def find(self,name, path):
-        for root, dirs, files in os.walk(path):
-            if name in files:
-                return [root, os.path.join(root, name)]
+        if (name[0] == '9'):
+            dirs = "19" +  name[0:2] + '/'
+        if (name[0] == '0'):
+            dirs = "20" + name[0:2] + '/'
+        name = dirs + name
+        #print name
+        #x =raw_input()
+        return [path, os.path.join(path,name)]
+        #for root, dirs, files in os.walk(path):
+        #    if name in files:
+        #        return [root, os.path.join(root, name)]
 
     def month_to_num(self,month_str):
 
@@ -193,6 +214,7 @@ class load_corpus:
             'Mar': 3,
             'Apr':4,
             'May':5,
+            'MAY':5,
             'Jun':6,
             'Jul':7,
             'Aug':8,
@@ -201,4 +223,6 @@ class load_corpus:
             'Nov':11,
             'Dec':12
             }
+        if (month_str not in m.keys()):
+            return -1
         return m[month_str]
