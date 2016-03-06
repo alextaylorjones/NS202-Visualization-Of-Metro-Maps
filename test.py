@@ -3,7 +3,7 @@ from load_corpus import load_corpus
 from influence_graph import influence_graph
 import matplotlib.pyplot as plt
 #Load a corpus into memory
-loader = load_corpus('/home/alex/classes/NS202/project/NS202-METRO-MAP-VISUALIZATION-OF-CITATION-NETWORKS/datasets/','Cit-HepTh.txt','stanford-hepth',500)
+loader = load_corpus('/Users/yding37/Documents/courses/soc-bio-networks/final-proj/NS202-Visualization-Of-Metro-Maps/datasets/','Cit-HepTh.txt','stanford-hepth',500)
 #Get the loaded graph
 graph = loader.get_graph('stanford-hepth')
 
