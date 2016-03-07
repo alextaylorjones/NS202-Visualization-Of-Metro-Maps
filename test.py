@@ -5,7 +5,7 @@ from influence_graph import influence_graph
 import matplotlib.pyplot as plt
 
 #Load a corpus into memory
-loader = load_corpus('/home/alex/classes/NS202/project/visualization-project/NS202-Visualization-Of-Metro-Maps/datasets/','Cit-HepTh.txt','stanford-hepth',1000)
+loader = load_corpus('./datasets/','Cit-HepTh.txt','stanford-hepth',1000)
 
 #Get the loaded graph
 graph = loader.get_graph('stanford-hepth')
