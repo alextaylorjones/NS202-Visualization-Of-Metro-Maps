@@ -1,19 +1,22 @@
+
 import networkx as nx
 from load_corpus import load_corpus
 from influence_graph import influence_graph
 import matplotlib.pyplot as plt
+
 #Load a corpus into memory
-loader = load_corpus('/Users/yding37/Documents/courses/soc-bio-networks/final-proj/NS202-Visualization-Of-Metro-Maps/datasets/','Cit-HepTh.txt','stanford-hepth',500)
+<<<<<<< HEAD
+loader = load_corpus('/home/alex/classes/NS202/project/visualization-project/NS202-Visualization-Of-Metro-Maps/datasets/','Cit-HepTh.txt','stanford-hepth',1000)
+
 #Get the loaded graph
 graph = loader.get_graph('stanford-hepth')
 
 #Create the influence graphs based 
 #hardcoded concepts for now
-concepts = ['we']
+concepts = ['we','string']
 influence = influence_graph(graph, concepts)
 influence.construct_influence_graph(loader.get_author_dict())
 influence.compute_document_pair_influences(0.1)
-
 igraph = influence.get_influence_graph()
 
 #Visualize the ancestral relation of the most related papers
