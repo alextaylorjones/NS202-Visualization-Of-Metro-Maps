@@ -18,7 +18,8 @@ def convert_networkx(nxgraph):
     return from_networkx(nxgraph)
 
 def random_network():
-    g=nx.complete_graph(10)
+    # g=nx.complete_graph(10)
+    g = nx.erdos_renyi_graph(20, 2, 1, directed=True)
     return g
 
 if __name__=="__main__":
