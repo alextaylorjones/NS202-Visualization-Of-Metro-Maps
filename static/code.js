@@ -25,9 +25,9 @@ function refreshElements() {
     });
 }
 
-function getNumCitations(id1,id2) {
+function getIntercitationTree(node_id) {
     $.ajax({
-        url: getBaseUrl() + '_get_intercitation_' + id1 + '_' + id2,
+        url: getBaseUrl() + '_get_intercitation_' + node_id,
         dataType: 'json',
         async: false,
         success: function (data) {
@@ -277,6 +277,8 @@ $(function () { // on dom ready
     //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
     cy.on('mouseover','node', function(event){
       var n = event.cyTarget;
+      getIntercitationTree(parseInt(n.data('file_id')));
+     
       n.qtip({
         content: n.data('title'),
         show: {
