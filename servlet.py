@@ -2,6 +2,14 @@ from flask import Flask, jsonify, render_template, request
 from utils import random_network, convert_networkx
 from load_corpus import load_corpus
 app = Flask(__name__)
+
+@app.route('/_get_intercitation_<int:id1>_<int:id2>')
+def get_intercitation(id1,id2):
+    print "ID1:",id1
+    print "ID2:",id2
+
+
+
 @app.route("/_get_cy_data")
 def random():
     print "called get_cy_data"
@@ -20,4 +28,4 @@ if __name__ == "__main__":
     loader = load_corpus('./datasets/','Cit-HepTh.txt','stanford-hepth',100)
 
     global_graph = loader.get_graph('stanford-hepth')
-    app.run()
+    app.run(debug=True)

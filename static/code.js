@@ -2,6 +2,8 @@ var cy;
 
 var cydata;
 
+var intercitation;
+
 function getBaseUrl() {
     var re = new RegExp(/^.*\//);
     return re.exec(window.location.href);
@@ -23,6 +25,18 @@ function refreshElements() {
     });
 }
 
+function getNumCitations(id1,id2) {
+    $.ajax({
+        url: getBaseUrl() + '_get_intercitation_' + id1 + '_' + id2,
+        dataType: 'json',
+        async: false,
+        success: function (data) {
+          intercitation = data;
+        }
+    });
+
+
+}
 refreshElements()
 
 $(function () { // on dom ready
@@ -165,6 +179,7 @@ $(function () { // on dom ready
         running = false;
     });
 
+
     layout.run();
 
     var $config = $('#config');
@@ -259,27 +274,26 @@ $(function () { // on dom ready
             layout.run();
         });
     }
+    //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
+    cy.on('mouseover','node', function(event){
+      var n = event.cyTarget;
+      n.qtip({
+        content: n.data('title'),
+        show: {
+          event: event.type,
+          ready: true
+        },
+        hide: {
+        event: 'mouseout unfocus'
+        }
+        },event);
+    });
 
     cy.nodes().forEach(function (n) {
-        var g = n.data('name');
+        var g = 'Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract') ;
 
         n.qtip({
-            content: [
-                {
-                    name: 'GeneCard',
-                    url: 'http://www.genecards.org/cgi-bin/carddisp.pl?gene=' + g
-                },
-                {
-                    name: 'UniProt search',
-                    url: 'http://www.uniprot.org/uniprot/?query=' + g + '&fil=organism%3A%22Homo+sapiens+%28Human%29+%5B9606%5D%22&sort=score'
-                },
-                {
-                    name: 'GeneMANIA',
-                    url: 'http://genemania.org/search/human/' + g
-                }
-            ].map(function (link) {
-                return '<a target="_blank" href="' + link.url + '">' + link.name + '</a>';
-            }).join('<br />\n'),
+            content: g,
             position: {
                 my: 'top center',
                 at: 'bottom center'
@@ -287,18 +301,18 @@ $(function () { // on dom ready
             style: {
                 classes: 'qtip-bootstrap',
                 tip: {
-                    width: 16,
+                    width: 45,
                     height: 8
                 }
             }
         });
     });
 
-    $('#config-toggle').on('click', function () {
-        $('body').toggleClass('config-closed');
+    //$('#config-toggle').on('click', function () {
+    //    $('body').toggleClass('config-closed');
 
-        cy.resize();
-    });
+      //  cy.resize();
+    //});
 
 }); // on dom ready
 
