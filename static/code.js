@@ -31,19 +31,22 @@ function getIntercitationTree(node_id) {
         dataType: 'json',
         async: false,
         success: function (data) {
-          intercitation = data;
-          intercitation.nodes.forEach(function(n){
-            var x = cydata.$(n.data.name);
-            x.grabbable = true;
+            intercitation = data;
+            intercitation.nodes.forEach(function (n) {
+                var x = cydata.$(n.data.name);
+                x.grabbable = true;
             });
         }
     });
 
 
 }
+
+
 refreshElements()
 
 $(function () { // on dom ready
+
 
     console.log('test')
     console.log(cydata)
@@ -166,6 +169,17 @@ $(function () { // on dom ready
     });
 
 
+    var intervalID = setInterval(function () {
+        cy.nodes().forEach(function (n) {
+            n.renderedPosition(
+                {
+                    x: Math.floor(Math.random() * 1000),
+                    y: Math.floor(Math.random() * 1000)
+                }
+            );
+        });
+    }, 5000);
+
     var params = {
         name: 'cola',
         nodeSpacing: 5,
@@ -279,43 +293,43 @@ $(function () { // on dom ready
         });
     }
 
-    function restyleIntercitationTree(){
-    
-    cy.startBatch();
-    
-    var ele = intercitation.elements();
+    function restyleIntercitationTree() {
 
-    for (var i=0; i < ele.length; i++){
-       var ele = ele[i];
+        cy.startBatch();
 
-           console.log( ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ) );
+        var ele = intercitation.elements();
 
-    }
-   
-    cy.endBatch();
+        for (var i = 0; i < ele.length; i++) {
+            var ele = ele[i];
+
+            console.log(ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ));
+
+        }
+
+        cy.endBatch();
     }
 
     //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
-    cy.on('mouseover','node', function(event){
-      var n = event.cyTarget;
-     //getIntercitationTree(parseInt(n.data('file_id')));
-     
-      n.qtip({
-        content: n.data('title'),
-        show: {
-          event: event.type//,
-          //ready: true
-        },
-        hide: {
-        event: 'mouseout unfocus'
-        }
-        },event);
+    cy.on('mouseover', 'node', function (event) {
+        var n = event.cyTarget;
+        //getIntercitationTree(parseInt(n.data('file_id')));
+
+        n.qtip({
+            content: n.data('title'),
+            show: {
+                event: event.type//,
+                //ready: true
+            },
+            hide: {
+                event: 'mouseout unfocus'
+            }
+        }, event);
     });
 
-    cy.on('click','node', function(event){
-    //cy.nodes().forEach(function (n) {
+    cy.on('click', 'node', function (event) {
+        //cy.nodes().forEach(function (n) {
         var n = event.cyTarget;
-        var g = "<b>"+n.data('title')+"</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract') ;
+        var g = "<b>" + n.data('title') + "</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract');
 
         //Updates the intercitation var
         getIntercitationTree(parseInt(n.data('file_id')));
@@ -340,7 +354,7 @@ $(function () { // on dom ready
     //$('#config-toggle').on('click', function () {
     //    $('body').toggleClass('config-closed');
 
-      //  cy.resize();
+    //  cy.resize();
     //});
 
 }); // on dom ready
