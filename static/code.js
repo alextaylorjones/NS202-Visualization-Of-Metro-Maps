@@ -32,6 +32,10 @@ function getIntercitationTree(node_id) {
         async: false,
         success: function (data) {
           intercitation = data;
+          intercitation.nodes.forEach(function(n){
+            var x = cydata.$(n.data.name);
+            x.grabbable = true;
+            });
         }
     });
 
@@ -274,16 +278,33 @@ $(function () { // on dom ready
             layout.run();
         });
     }
+
+    function restyleIntercitationTree(){
+    
+    cy.startBatch();
+    
+    var ele = intercitation.elements();
+
+    for (var i=0; i < ele.length; i++){
+       var ele = ele[i];
+
+           console.log( ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ) );
+
+    }
+   
+    cy.endBatch();
+    }
+
     //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
     cy.on('mouseover','node', function(event){
       var n = event.cyTarget;
-      getIntercitationTree(parseInt(n.data('file_id')));
+     //getIntercitationTree(parseInt(n.data('file_id')));
      
       n.qtip({
         content: n.data('title'),
         show: {
-          event: event.type,
-          ready: true
+          event: event.type//,
+          //ready: true
         },
         hide: {
         event: 'mouseout unfocus'
@@ -291,8 +312,14 @@ $(function () { // on dom ready
         },event);
     });
 
-    cy.nodes().forEach(function (n) {
-        var g = 'Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract') ;
+    cy.on('click','node', function(event){
+    //cy.nodes().forEach(function (n) {
+        var n = event.cyTarget;
+        var g = "<b>"+n.data('title')+"</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract') ;
+
+        //Updates the intercitation var
+        getIntercitationTree(parseInt(n.data('file_id')));
+//        restyleIntercitationTree();
 
         n.qtip({
             content: g,

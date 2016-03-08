@@ -14,6 +14,7 @@ def get_intercitation(node_id):
         print "Global graph has node",node_id
         ancs = nx.ancestors(global_graph,node_id)
         desc = nx.descendants(global_graph,node_id)
+        print ancs,desc
         s = nx.DiGraph()
         for a in ancs:
             s.add_node(a)
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     global_graph = None
  
     #Load a corpus into memory
-    loader = load_corpus('./datasets/','Cit-HepTh.txt','stanford-hepth',100)
+    loader = load_corpus('./datasets/','Cit-HepTh.txt','stanford-hepth',600)
 
     global_graph = loader.get_graph('stanford-hepth')
     app.run(debug=True)
