@@ -50,7 +50,12 @@ class load_corpus:
         local_name += '.abs'
         #Read directory and filename
         find_array = self.find(local_name,directory)
-        file_year = str(find_array[0].split('/')[-1:][0])
+        if (str(local_name)[0] == '0'):
+            file_year = int('20' + str(local_name)[0:2])
+        elif (str(local_name)[0] == '9'):
+            file_year = int('19' + str(local_name)[0:2])
+        else:
+            print "incorrect file naming convention",local_name
         file_name = find_array[1]
         meta_dict = {}
 
