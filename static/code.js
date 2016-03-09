@@ -25,22 +25,7 @@ function refreshElements() {
     });
 }
 
-function getIntercitationTree(node_id) {
-    $.ajax({
-        url: getBaseUrl() + '_get_intercitation_' + node_id,
-        dataType: 'json',
-        async: false,
-        success: function (data) {
-          intercitation = data;
-          intercitation.nodes.forEach(function(n){
-            var x = cydata.$(n.data.name);
-            x.grabbable = true;
-            });
-        }
-    });
 
-
-}
 refreshElements()
 
 $(function () { // on dom ready
@@ -48,7 +33,7 @@ $(function () { // on dom ready
     console.log('test')
     console.log(cydata)
 
-    cy = cytoscape({
+    var cy = cytoscape({
         container: document.getElementById('cy'),
 
         style: [
@@ -132,8 +117,8 @@ $(function () { // on dom ready
                 "selector": "edge[group=\"coexp\"]",
                 "style": {"line-color": "#d0b7d5"}
             }, {
-                "selector": "edge[group=\"coloc\"]",
-                "style": {"line-color": "#a0b3dc"}
+                "selector": "edge[source=\"9504090\"]",
+                "style": {"line-color": "#aa0000"}
             }, {
                 "selector": "edge[group=\"gi\"]",
                 "style": {"line-color": "#90e190"}
@@ -278,7 +263,7 @@ $(function () { // on dom ready
             layout.run();
         });
     }
-
+  //not used right now
     function restyleIntercitationTree(){
     
     cy.startBatch();
@@ -313,7 +298,6 @@ $(function () { // on dom ready
     });
 
     cy.on('click','node', function(event){
-    //cy.nodes().forEach(function (n) {
         var n = event.cyTarget;
         var g = "<b>"+n.data('title')+"</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract') ;
 
@@ -342,6 +326,36 @@ $(function () { // on dom ready
 
       //  cy.resize();
     //});
+    function getIntercitationTree(node_id) {
+    $.ajax({
+        url: getBaseUrl() + '_get_intercitation_' + node_id,
+        dataType: 'json',
+        async: false,
+        success: function (data) {
+          intercitation = data;
+          //intercitation.nodes.forEach(function(n){
+          //  var x = cydata.$(n.data.name);
+         //   x.grabbable = true;
+         //   });
+        }
+    });
+    console.log(intercitation);
+    intercitation.nodes.forEach(function(node){
+      var node_data = node['data'];
+      var paper_id = node_data['name'];
+      var query = 'node[name = "' + paper_id + '"]';
+      console.log(query);
+      matched_paper = cy.filter(query);
+
+      matched_paper.forEach(function(foundNode){
+        console.log(foundNode);
+      });
+
+      
+
+    });
+
+    }
 
 }); // on dom ready
 
