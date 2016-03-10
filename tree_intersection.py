@@ -1,5 +1,7 @@
 #!/usr/bin/python
 import networkx as nx
+import math
+import operator
 
 class TreeIntersection:
 
@@ -119,3 +121,45 @@ class TreeIntersection:
       assert(len(list(nx.simple_cycles(fuller_dag))) == 0)
 
       return fuller_dag
+
+    #Find papers in the citagraph which heavily cite the papers in dag
+    def add_relevant_citing_nodes(self,dag,citegraph, percentage_rank):
+        rev_citegraph = nx.reverse(citegraph, copy=True)
+        cite_relevance_dict = {}
+        citers_relevance_dict = {}
+
+        for node in citegraph:
+            cited = set(citegraph.neighbors(node))
+            if len(cited) == 0:
+                continue
+            cite_relevance_dict[node] = -float( len(cited.intersection(set(dag.nodes()))) /len(cited))
+
+        for node in citegraph:
+            citers = set(rev_citegraph.neighbors(node))
+            if len(citers) == 0:
+                continue
+            citers_relevance_dict[node] = -float( len(citers.intersection(set(dag.nodes()))) /len(citers))
+
+        sorted_cite_relevance = sorted(cite_relevance_dict.items(),key =operator.itemgetter(1))
+
+        sorted_citer_relevance = sorted(citers_relevance_dict.items(),key =operator.itemgetter(1))
+
+        print sorted_cite_relevance ,sorted_citer_relevance
+        for x in range(int(percentage_rank*len(sorted_cite_relevance))):
+            if x < len(sorted_cite_relevance) -1:
+                node_to_add = sorted_cite_relevance[x]
+                for neigh in citegraph.neighbors(node_to_add[0]):
+                    if neigh in dag.nodes():
+                        dag.add_edge(node_to_add[0],neigh)
+                        print "adding edge",(node_to_add[0],neigh)
+
+
+        for x in range(int(percentage_rank*len(sorted_citer_relevance))):
+            if x < len(sorted_citer_relevance) -1:
+                node_to_add = sorted_citer_relevance[x]
+                for neigh in rev_citegraph.neighbors(node_to_add[0]):
+                    if neigh in dag.nodes():
+                        dag.add_edge(neigh,node_to_add[0])
+                        print "adding edge",(neigh,node_to_add[0])
+        return dag
+
