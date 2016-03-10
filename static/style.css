@@ -14,8 +14,8 @@ body {
 #cy {
   position: absolute;
   left: 0px;
-  top: 100px;
-  bottom: 0px;
+  top: 120px;
+  bottom: 120px;
   right: 0px;
 }
 
@@ -91,4 +91,13 @@ a:hover {
   #cy {
     right: 0;
   }
+}
+
+#tooltip {
+  position: absolute;
+  bottom: 0px;
+}
+
+#slider {
+  margin: 10px;
 }
