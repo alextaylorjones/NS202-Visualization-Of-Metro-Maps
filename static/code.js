@@ -43,18 +43,14 @@ function getIntercitationTree(node_id) {
 
 }
 
-refreshElements()
-
-$(function () { // on dom ready
-
-
-    console.log('test')
-    console.log(cydata)
-
-    var cy = cytoscape({
+function createNewVis(data) {
+    return cytoscape({
         container: document.getElementById('cy'),
-
-
+        boxSelectionEnabled: false,
+        autounselectify: true,
+        layout: {
+            name: 'dagre'
+        },
         style: [
             {
                 selector: 'node',
@@ -70,7 +66,7 @@ $(function () { // on dom ready
             {
                 selector: 'edge',
                 style: {
-                    'width': 4,
+                    'width': 1,
                     'target-arrow-shape': 'triangle',
                     'line-color': '#9dbaea',
                     'target-arrow-color': '#9dbaea'
@@ -78,8 +74,19 @@ $(function () { // on dom ready
             }
         ],
 
-        elements: cydata
+        elements: data
     });
+}
+
+refreshElements()
+
+$(function () { // on dom ready
+
+
+    console.log('test');
+    console.log(cydata);
+
+    cy = createNewVis(cydata);
 
 
     //var intervalID = setInterval(function () {
@@ -92,161 +99,141 @@ $(function () { // on dom ready
     //        );
     //    });
     //}, 5000);
-
-    var params = {
-        name: 'cola',
-        nodeSpacing: 5,
-        edgeLengthVal: 45,
-        animate: true,
-        randomize: false,
-        maxSimulationTime: 1500
-    };
-    var layout = makeLayout();
-    var running = false;
-
-    cy.on('layoutstart', function () {
-        running = true;
-    }).on('layoutstop', function () {
-        running = false;
-    });
-
-
-    layout.run();
-
-    var $config = $('#config');
-    var $btnParam = $('<div class="param"></div>');
-    $config.append($btnParam);
-
-    var sliders = [
-        {
-            label: 'Edge length',
-            param: 'edgeLengthVal',
-            min: 1,
-            max: 200
-        },
-
-        {
-            label: 'Node spacing',
-            param: 'nodeSpacing',
-            min: 1,
-            max: 50
-        }
-    ];
-
-    var buttons = [
-        {
-            label: '<i class="fa fa-random"></i>',
-            layoutOpts: {
-                randomize: true,
-                flow: null
-            }
-        },
-
-        {
-            label: '<i class="fa fa-long-arrow-down"></i>',
-            layoutOpts: {
-                flow: {axis: 'y', minSeparation: 30}
-            }
-        }
-    ];
-
-    sliders.forEach(makeSlider);
-
-    buttons.forEach(makeButton);
-
-    function makeLayout(opts) {
-        params.randomize = false;
-        params.edgeLength = function (e) {
-            return params.edgeLengthVal / e.data('weight');
-        };
-
-        for (var i in opts) {
-            params[i] = opts[i];
-        }
-
-        return cy.makeLayout(params);
-    }
-
-    function makeSlider(opts) {
-        var $input = $('<input></input>');
-        var $param = $('<div class="param"></div>');
-
-        $param.append('<span class="label label-default">' + opts.label + '</span>');
-        $param.append($input);
-
-        $config.append($param);
-
-        var p = $input.slider({
-            min: opts.min,
-            max: opts.max,
-            value: params[opts.param]
-        }).on('slide', _.throttle(function () {
-            params[opts.param] = p.getValue();
-
-            layout.stop();
-            layout = makeLayout();
-            layout.run();
-        }, 16)).data('slider');
-    }
-
-    function makeButton(opts) {
-        var $button = $('<button class="btn btn-default">' + opts.label + '</button>');
-
-        $btnParam.append($button);
-
-        $button.on('click', function () {
-            layout.stop();
-
-            if (opts.fn) {
-                opts.fn();
-            }
-
-            layout = makeLayout(opts.layoutOpts);
-            layout.run();
-        });
-    }
-
-    function restyleIntercitationTree() {
-
-        cy.startBatch();
-
-        var ele = intercitation.elements();
-
-        for (var i = 0; i < ele.length; i++) {
-            var ele = ele[i];
-
-            console.log(ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ));
-
-        }
-
-        cy.endBatch();
-    }
-
+//
+//    var params = {
+//        name: 'Dagre',
+//        nodeSpacing: 5,
+//        edgeLengthVal: 45,
+//        animate: true,
+//        randomize: false,
+//        maxSimulationTime: 1500
+//    };
+//    var layout = makeLayout();
+//    var running = false;
+//
+//    cy.on('layoutstart', function () {
+//        running = true;
+//    }).on('layoutstop', function () {
+//        running = false;
+//    });
+//
+//
+//    layout.run();
+//
+//    var $config = $('#config');
+//    var $btnParam = $('<div class="param"></div>');
+//    $config.append($btnParam);
+//
+//    var sliders = [
+//        {
+//            label: 'Edge length',
+//            param: 'edgeLengthVal',
+//            min: 1,
+//            max: 200
+//        },
+//
+//        {
+//            label: 'Node spacing',
+//            param: 'nodeSpacing',
+//            min: 1,
+//            max: 50
+//        }
+//    ];
+//
+//    var buttons = [
+//        {
+//            label: '<i class="fa fa-random"></i>',
+//            layoutOpts: {
+//                randomize: true,
+//                flow: null
+//            }
+//        },
+//
+//        {
+//            label: '<i class="fa fa-long-arrow-down"></i>',
+//            layoutOpts: {
+//                flow: {axis: 'y', minSeparation: 30}
+//            }
+//        }
+//    ];
+//
+//    sliders.forEach(makeSlider);
+//
+//    buttons.forEach(makeButton);
+//
+//    function makeLayout(opts) {
+//        params.randomize = false;
+//        params.edgeLength = function (e) {
+//            return params.edgeLengthVal / e.data('weight');
+//        };
+//
+//        for (var i in opts) {
+//            params[i] = opts[i];
+//        }
+//
+//        return cy.makeLayout(params);
+//    }
+//
+//    function makeSlider(opts) {
+//        var $input = $('<input></input>');
+//        var $param = $('<div class="param"></div>');
+//
+//        $param.append('<span class="label label-default">' + opts.label + '</span>');
+//        $param.append($input);
+//
+//        $config.append($param);
+//
+//        var p = $input.slider({
+//            min: opts.min,
+//            max: opts.max,
+//            value: params[opts.param]
+//        }).on('slide', _.throttle(function () {
+//            params[opts.param] = p.getValue();
+//
+//            layout.stop();
+//            layout = makeLayout();
+//            layout.run();
+//        }, 16)).data('slider');
+//    }
+//
+//    function makeButton(opts) {
+//        var $button = $('<button class="btn btn-default">' + opts.label + '</button>');
+//
+//        $btnParam.append($button);
+//
+//        $button.on('click', function () {
+//            layout.stop();
+//
+//            if (opts.fn) {
+//                opts.fn();
+//            }
+//
+//            layout = makeLayout(opts.layoutOpts);
+//            layout.run();
+//        });
+//    }
+//
+//    function restyleIntercitationTree() {
+//
+//        cy.startBatch();
+//
+//        var ele = intercitation.elements();
+//
+//        for (var i = 0; i < ele.length; i++) {
+//            var ele = ele[i];
+//
+//            console.log(ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ));
+//
+//        }
+//
+//        cy.endBatch();
+//    }
+//
     //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
     cy.on('mouseover', 'node', function (event) {
         var n = event.cyTarget;
-        //getIntercitationTree(parseInt(n.data('file_id')));
-
-        n.qtip({
-            content: n.data('title'),
-            show: {
-                event: event.type//,
-                //ready: true
-            },
-            hide: {
-                event: 'mouseout unfocus'
-            }
-        }, event);
-    });
-
-    cy.on('click', 'node', function (event) {
-        //cy.nodes().forEach(function (n) {
-        var n = event.cyTarget;
         var g = "<b>" + n.data('title') + "</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract');
 
-        //Updates the intercitation var
-        getIntercitationTree(parseInt(n.data('file_id')));
-//        restyleIntercitationTree();
 
         n.qtip({
             content: g,
@@ -257,18 +244,32 @@ $(function () { // on dom ready
             style: {
                 classes: 'qtip-bootstrap',
                 tip: {
-                    width: 45,
+                    width: 100,
                     height: 8
                 }
+            },
+            show: {
+                event: "mouseover"
+            },
+            hide: {
+                event: 'mouseout unfocus',
+                fixed: true,
             }
-        });
+        }, event);
+
     });
 
-    //$('#config-toggle').on('click', function () {
-    //    $('body').toggleClass('config-closed');
+    cy.on('click', 'node', function (event) {
+        var n = event.cyTarget;
+        //Updates the intercitation var
+        getIntercitationTree(parseInt(n.data('file_id')));
+    });
 
-    //  cy.resize();
-    //});
+    $('#config-toggle').on('click', function () {
+        $('body').toggleClass('config-closed');
+
+      cy.resize();
+    });
     function getIntercitationTree(node_id) {
         $.ajax({
             url: getBaseUrl() + '_get_intercitation_' + node_id,
@@ -276,20 +277,23 @@ $(function () { // on dom ready
             async: false,
             success: function (data) {
                 intercitation = data;
+                console.log(data);
 
-                console.log(intercitation);
+                //console.log(intercitation);
                 intercitation.nodes.forEach(function (node) {
                     var node_data = node['data'];
 
                     var paper_name = node_data['name'];
                     //var query = "[source='" + pape + "']";
-
-                    console.log(paper_name);
-                    console.log(cy.$('#' + paper_name));
-                    cy.$('#' + paper_name).renderedPosition({
-                        x: Math.floor(Math.random() * 200) - 200,
-                        y: Math.floor(Math.random() * 200) - 200
-                    });
+                    //
+                    //console.log(paper_name);
+                    //console.log(cy.$('#' + paper_name));
+                    //cy.$('#' + paper_name).renderedPosition({
+                    //    x: Math.floor(Math.random() * 200) - 200,
+                    //    y: Math.floor(Math.random() * 200) - 200
+                    //});
+                    cy = createNewVis(data);
+                    //cy.load()
 
 
                     //console.log(cy.getElementById(paper_name));
@@ -306,17 +310,13 @@ $(function () { // on dom ready
 
 
                 });
-                //intercitation.nodes.forEach(function(n){
-                //  var x = cydata.$(n.data.name);
-                //   x.grabbable = true;
-                //   });
             }
         });
 
     }
 
 }); // on dom ready
-
-$(function () {
-    FastClick.attach(document.body);
-});
+//
+//$(function () {
+//    FastClick.attach(document.body);
+//});
