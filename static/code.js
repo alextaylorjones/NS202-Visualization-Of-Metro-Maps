@@ -1,8 +1,8 @@
 var cy;
-
 var cydata;
-
 var intercitation;
+
+var clicked_nodes = [];
 
 function getBaseUrl() {
     var re = new RegExp(/^.*\//);
@@ -25,19 +25,87 @@ function refreshElements() {
     });
 }
 
-function getIntercitationTree(node_id) {
+function getIntercitationTree(src, dst) {
     $.ajax({
-        url: getBaseUrl() + '_get_intercitation_' + node_id,
+        url: getBaseUrl() + '_get_intercitation/' + src + "/" + dst,
         dataType: 'json',
         async: false,
         success: function (data) {
-            console.log(data)
             intercitation = data;
-            intercitation.nodes.forEach(function (n) {
-                var x = cydata.$(n.data.name);
-                x.grabbable = true;
-            });
+            console.log(data);
+
+            cy = createNewVis(data);
         }
+    });
+
+    bindEvents();
+}
+
+function resetGraph() {
+    refreshElements();
+    cy = createNewVis(cydata);
+    bindEvents();
+}
+
+function bindEvents() {
+    //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
+    cy.on('mouseover', 'node', function (event) {
+        var n = event.cyTarget;
+        var g = "<b>" + n.data('title') + "</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract');
+
+
+        n.qtip({
+            content: g,
+            position: {
+                my: 'top center',
+                at: 'bottom center'
+            },
+            style: {
+                classes: 'qtip-bootstrap',
+                tip: {
+                    width: 100,
+                    height: 8
+                }
+            },
+            show: {
+                event: "mouseover"
+            },
+            hide: {
+                event: 'mouseout unfocus',
+                fixed: true,
+            }
+        }, event);
+
+    });
+
+    cy.on('click', 'node', function (event) {
+        var n = event.cyTarget;
+        console.log('clicked node length: ' + clicked_nodes.length);
+
+        if (clicked_nodes.length == 1 && $.inArray(n.data('id'),  clicked_nodes) != -1){
+            cy.$('#'+ n.data('id')).style('background-color', '#11479e');
+            clicked_nodes = [];
+            console.log("cleared background: " + n.data('id'))
+        } else if (clicked_nodes.length == 1 && $.inArray(n.data('id'), clicked_nodes) == -1) {
+
+            clicked_nodes.push(n.data('id'));
+            console.log("intercitation for these nodes: " + clicked_nodes)
+
+            getIntercitationTree(clicked_nodes[0], clicked_nodes[1]);
+            clicked_nodes =[];
+        } else {
+            clicked_nodes.push(n.data('id'));
+            cy.$('#' + n.data('id')).style('background-color', '#9e4711');
+            console.log("adding to clicked node: " + clicked_nodes)
+        }
+        //Updates the intercitation var
+        //getIntercitationTree(parseInt(n.data('file_id')));
+    });
+
+    $('#config-toggle').on('click', function () {
+        $('body').toggleClass('config-closed');
+
+        cy.resize();
     });
 
 
@@ -78,16 +146,17 @@ function createNewVis(data) {
     });
 }
 
-refreshElements()
 
 $(function () { // on dom ready
 
+    refreshElements()
 
     console.log('test');
     console.log(cydata);
 
     cy = createNewVis(cydata);
 
+    bindEvents();
 
     //var intervalID = setInterval(function () {
     //    cy.nodes().forEach(function (n) {
@@ -229,94 +298,5 @@ $(function () { // on dom ready
 //        cy.endBatch();
 //    }
 //
-    //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
-    cy.on('mouseover', 'node', function (event) {
-        var n = event.cyTarget;
-        var g = "<b>" + n.data('title') + "</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract');
 
-
-        n.qtip({
-            content: g,
-            position: {
-                my: 'top center',
-                at: 'bottom center'
-            },
-            style: {
-                classes: 'qtip-bootstrap',
-                tip: {
-                    width: 100,
-                    height: 8
-                }
-            },
-            show: {
-                event: "mouseover"
-            },
-            hide: {
-                event: 'mouseout unfocus',
-                fixed: true,
-            }
-        }, event);
-
-    });
-
-    cy.on('click', 'node', function (event) {
-        var n = event.cyTarget;
-        //Updates the intercitation var
-        getIntercitationTree(parseInt(n.data('file_id')));
-    });
-
-    $('#config-toggle').on('click', function () {
-        $('body').toggleClass('config-closed');
-
-      cy.resize();
-    });
-    function getIntercitationTree(node_id) {
-        $.ajax({
-            url: getBaseUrl() + '_get_intercitation_' + node_id,
-            dataType: 'json',
-            async: false,
-            success: function (data) {
-                intercitation = data;
-                console.log(data);
-
-                //console.log(intercitation);
-                intercitation.nodes.forEach(function (node) {
-                    var node_data = node['data'];
-
-                    var paper_name = node_data['name'];
-                    //var query = "[source='" + pape + "']";
-                    //
-                    //console.log(paper_name);
-                    //console.log(cy.$('#' + paper_name));
-                    //cy.$('#' + paper_name).renderedPosition({
-                    //    x: Math.floor(Math.random() * 200) - 200,
-                    //    y: Math.floor(Math.random() * 200) - 200
-                    //});
-                    cy = createNewVis(data);
-                    //cy.load()
-
-
-                    //console.log(cy.getElementById(paper_name));
-                    //console.log(query);
-                    //
-                    //var collection = cy.elements("node[name='" + paper_name + "']");
-                    ////matched_paper = cy.edges(query);
-                    //console.log(collection);
-                    //
-                    //collection.forEach(function (foundNode) {
-                    //    console.log("node");
-                    //    console.log(foundNode)
-                    //});
-
-
-                });
-            }
-        });
-
-    }
-
-}); // on dom ready
-//
-//$(function () {
-//    FastClick.attach(document.body);
-//});
+});
