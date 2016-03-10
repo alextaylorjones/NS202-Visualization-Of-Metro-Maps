@@ -86,7 +86,7 @@ class influence_graph:
                         sum_nrj += float(self.citation_graph.node[coauth]['concept_freq'][c]) / (self.citation_graph.node[coauth]['doc_length'] + 1)
                 #Novelty cost assumed 0 for now
                 #TODO: update
-                novel_c = 0
+                novel_c = 0.0
                 if (l >0 ):
                     Z[c] = sum_nrj + (1/len(prev_papers))*sum_nbj + novel_c
                 else:
