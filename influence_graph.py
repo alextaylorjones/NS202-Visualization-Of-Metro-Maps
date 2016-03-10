@@ -19,9 +19,12 @@ class influence_graph:
 
         for e in graph.edges():
             self.concept_graph.add_edge(e[0],e[1],weights = dict((c,0) for c in _concepts))
+
         for u in graph.nodes():
-            for v in graph.nodes():
-                self.influence_graph.add_edge(u,v,weights = dict((c,0) for c in _concepts))
+          for v in graph.nodes():
+            if (u == v):
+              continue
+            self.influence_graph.add_edge(u,v,weights = dict((c,0) for c in _concepts))
 
 
     """ Call this once on a set of concepts to construct the influence graph from the concepts """
@@ -105,6 +108,9 @@ class influence_graph:
             #Calculate the weight of each concept from previously authored papers, if they exist
             if l > 0:
                 for bi in prev_papers:
+                        if (bi == y):
+                            print "Self is previous paper"
+                            continue
                         self.concept_graph.add_edge(bi,y, weights = {})
                         for c in concepts:
                             if Z[c] == 0:
@@ -190,9 +196,6 @@ class influence_graph:
 
         #end for (concept loop)
 
-
-
-    """Uniformly sample content graph edges, using weights from the concept given"""
     def sample_concept_graph(self,concept):
         sample = nx.DiGraph()
         for e in self.concept_graph.edges():
