@@ -59,7 +59,7 @@ class load_corpus:
         file_name = find_array[1]
         meta_dict = {}
 
-        meta_dict['file_id'] = file_id
+        meta_dict['file_id'] = file_id.rjust(7,'0')
         meta_dict['file_name'] = file_name
 
         assert(file_name != None)
