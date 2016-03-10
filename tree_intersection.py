@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import networkx as nx
 
-class tree_intersection:
+class TreeIntersection:
 
     def __init__(self):
         print "Tree intersection initialize"
@@ -67,11 +67,18 @@ class tree_intersection:
     """ Compute the intersection between the ancestors of new_node
     and the descendents of old_node  in a DAG"""
     def get_intercitation_dag(self,old_node, new_node, dag):
+        print dag.nodes()
        # Compute necessary lineages
         desc = nx.descendants(dag,old_node)
         desc.add(old_node)
         anc = nx.ancestors(dag,new_node)
         anc.add(new_node)
+
+        print "descendants: "
+
+        print desc
+        print "ancestors: "
+        print anc
 
         # Intersect lineages to get ad tree
         intersect = desc.intersection(anc)

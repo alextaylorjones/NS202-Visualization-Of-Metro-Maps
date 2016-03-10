@@ -4,17 +4,17 @@ from load_corpus import load_corpus
 import networkx as nx
 import random
 import math
+from tree_intersection import TreeIntersection
 app = Flask(__name__)
 
-SAMPLES_TO_LOAD = 8000
+SAMPLES_TO_LOAD = 200
 
 
-def num_edges_to_remove():
-    return math.floor(max(0, SAMPLES_TO_LOAD - 500) * .6)
+def num_edges_to_remove(size):
+    return math.floor(max(0,  size - 300) * .7)
 
-def num_nodes_to_remove():
-
-    return math.floor(max(0, SAMPLES_TO_LOAD - 500) * .2)
+def num_nodes_to_remove(size):
+    return math.floor(max(0, size - 300) * .5)
 
 
 def get_global_graph():
@@ -27,11 +27,12 @@ def get_global_graph():
 def sparsify_graph(g):
     print "sparsifying"
     edges = g.edges()
-    remove = random.sample(edges, int(num_edges_to_remove()))
+    print "removing edges: " + str(num_edges_to_remove(len(edges)))
+    remove = random.sample(edges, int(num_edges_to_remove(len(edges))))
     g.remove_edges_from(remove)
 
     nodes = g.nodes()
-    rm = random.sample(nodes, int(num_nodes_to_remove()))
+    rm = random.sample(nodes, int(num_nodes_to_remove(len(nodes))))
     g.remove_nodes_from(rm)
     return g
 
@@ -68,35 +69,52 @@ def assign_relative_positions(graph):
     return graph
 
 
-@app.route('/_get_intercitation_<int:node_id>')
-def get_intercitation(node_id):
+@app.route('/_get_intercitation/<src>/<dst>')
+def get_intercitation(src, dst):
 
     graph = get_global_graph()
 
-    node_id = str(node_id)
-    # print "ID1:", node_id
-    # print "Graph has", len(global_graph.nodes()), ' nodes'
-    if ((node_id) in graph):
-        print "Global graph has node", node_id
-        related = []
-        related.extend(nx.ancestors(graph, node_id))
-        related.extend(nx.descendants(graph, node_id))
-        related.extend([node_id])
+    nodes = [graph.node[src], graph.node[dst]]
+    nodes = sorted(nodes, key=lambda n: (n['year'], n['date']))
 
-        print related
+    print 'getting nodes...'
+    print nodes
 
-        s = nx.DiGraph(graph.subgraph(related).copy())
+    t = TreeIntersection()
 
-        # print "returning subgraph"
-        # nx.info(s)
-        # print s.nodes()
-        # print s.edges()
+    dag = t.get_intercitation_dag(nodes[1]['file_id'], nodes[0]['file_id'], graph)
 
-        g = assign_relative_positions(s)
+    return jsonify(convert_networkx(dag)['elements'])
 
-        nx.info(s)
-        return jsonify(convert_networkx(g)['elements'])
-    return []
+
+
+
+
+    #
+    # node_id = str(node_id)
+    # # print "ID1:", node_id
+    # # print "Graph has", len(global_graph.nodes()), ' nodes'
+    # if ((node_id) in graph):
+    #     print "Global graph has node", node_id
+    #     related = []
+    #     related.extend(nx.ancestors(graph, node_id))
+    #     related.extend(nx.descendants(graph, node_id))
+    #     related.extend([node_id])
+    #
+    #     print related
+    #
+    #     s = nx.DiGraph(graph.subgraph(related).copy())
+    #
+    #     # print "returning subgraph"
+    #     # nx.info(s)
+    #     # print s.nodes()
+    #     # print s.edges()
+    #
+    #     g = assign_relative_positions(s)
+    #     sparsify_graph(g)
+    #
+    #     return jsonify(convert_networkx(g)['elements'])
+    # return []
 
 
 @app.route("/_get_cy_data")
