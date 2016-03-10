@@ -59,7 +59,7 @@ class load_corpus:
         file_name = find_array[1]
         meta_dict = {}
 
-        meta_dict['file_id'] = file_id
+        meta_dict['file_id'] = file_id.rjust(7,'0')
         meta_dict['file_name'] = file_name
 
         assert(file_name != None)
@@ -159,6 +159,10 @@ class load_corpus:
                     #print authors[:]
         #After while loop is finished, save all text in abstract string
         meta_dict['abstract'] = abstract
+
+        if 'authors' not in meta_dict.keys():
+            meta_dict['authors'] = "missing"
+
         return meta_dict
         #except:
         #    print "Error opening",file_name
@@ -182,10 +186,16 @@ class load_corpus:
             assert(len(items) == 2)
             if (items[0] in graph) == 0:
                 node_dict = self.read_metadata(directory,items[0])
-                graph.add_node(items[0], abstract = node_dict['abstract'], authors = node_dict['authors'],title=node_dict['title'],date=node_dict['date'],year=node_dict['year'], file_id = node_dict['file_id'], file_name=node_dict['file_name'])
+                try:
+                    graph.add_node(items[0], abstract = node_dict['abstract'], authors = node_dict['authors'],title=node_dict['title'],date=node_dict['date'],year=node_dict['year'], file_id = node_dict['file_id'], file_name=node_dict['file_name'])
+                except:
+                    print "Error in loading",items[0], "with metadata",node_dict
             if (items[1] in graph) == 0:
                 node_dict = self.read_metadata(directory,items[1])
-                graph.add_node(items[1], abstract = node_dict['abstract'], authors = node_dict['authors'],title=node_dict['title'],date=node_dict['date'],year=node_dict['year'], file_id = node_dict['file_id'], file_name=node_dict['file_name'])
+                try:
+                   graph.add_node(items[1], abstract = node_dict['abstract'], authors = node_dict['authors'],title=node_dict['title'],date=node_dict['date'],year=node_dict['year'], file_id = node_dict['file_id'], file_name=node_dict['file_name'])
+                except:
+                    print "Error in loading",items[1], "with metadata",node_dict
 
             graph.add_edge(items[0],items[1])
 
