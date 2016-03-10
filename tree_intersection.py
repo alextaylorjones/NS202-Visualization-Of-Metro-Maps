@@ -61,7 +61,6 @@ class tree_intersection:
               if (nx.has_path(rev_dag,cited,new_node)):
                 cited_alt_path += 1
             net_robustness[w] = pow(float(cited_alt_path + citer_alt_path)/(dag.out_degree(w) + dag.in_degree(w)),network_robustness_param)
-          
           #Now we have ranked all the intersect nodes, build paths according to weights of each node
 
 
@@ -99,3 +98,17 @@ class tree_intersection:
                            intercite_dag.add_edge(path[i],path[i+1])
 
             return intercite_dag
+
+    def add_cited_citing_nodes(self,dag, citegraph):
+      """ Take original subgraph of cite graph - dag and add to it all in and out neighbors """
+      fuller_dag = nx.DiGraph()
+      rev_cite = nx.reverse(citegraph,copy=True)
+      for node in dag.nodes():
+        for neighbor in citegraph.neighbors(node):
+          fuller_dag.add_edge(node,neighbor)
+        for in_neighbor in rev_cite.neighbors(node):
+          fuller_dag.add_edge(in_neighbor,node)
+
+      assert(len(list(nx.simple_cycles(fuller_dag))) == 0)
+
+      return fuller_dag
