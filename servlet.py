@@ -6,7 +6,7 @@ import random
 import math
 app = Flask(__name__)
 
-SAMPLES_TO_LOAD = 7000
+SAMPLES_TO_LOAD = 8000
 
 
 def num_edges_to_remove():
