@@ -13,6 +13,8 @@
     <link href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.2.0/jquery.qtip.min.css" rel="stylesheet"/>
 
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet"/>
+    <link href="{{ url_for('static', filename='loader.css') }}" rel="stylesheet"/>
+
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
@@ -28,23 +30,32 @@
 
 </head>
 <body>
-<div id="header" style="align-content: center;width: 100%">
-    <select id="algorithmOpt" class="graph_options">
-        <option value="volvo">Volvo</option>
-        <option value="saab">Saab</option>
-        <option value="opel">Opel</option>
-        <option value="audi">Audi</option>
-    </select>
-
-    <form action="#" class="graph_options" onsubmit="updateGraph()">
-        Samples <input id="samplesOpt" type="text" name="samples" value="5000">
-        <input type="submit" value="Update">
-    </form>
-    <button onclick="resetGraph()" style="float: right; margin-right: 20px">Reset</button>
-</div>
 
 
 <div id="cy"></div>
+
+<div id="header" style="align-content: center;width: 100%">
+    <select id="algorithmOpt" class="graph_options">
+        <option value="intercitation">Intercitation</option>
+        <option value="netrel">Network Relevant</option>
+        <option value="bushy">Ancestor Descendant</option>
+    </select>
+    <p class="graph_options">Samples <input id="samplesOpt" type="text" name="samples" value="5000"></p>
+    <button onclick="grapher.update()" class="graph_options">Update</button>
+    <button onclick="grapher.reset()" style="float: right; margin-right: 20px">Reset</button>
+</div>
+
+<div id="cs-loader" class="cs-loader">
+  <div id="cs-loader-innder" class="cs-loader-inner">
+    <label>	●</label>
+    <label>	●</label>
+    <label>	●</label>
+    <label>	●</label>
+    <label>	●</label>
+    <label>	●</label>
+  </div>
+</div>
+
 <p id="tooltip"></p>
 </body>
 </html>

@@ -26,13 +26,13 @@ function createCytoscapeGraph(graph) {
     return cy;
 }
 
-function getFullGraph(cb) {
-    getGraph(DEFAULT_SAMPLES, DEFAULT_ALGO, cb);
+function getFullGraph(callback) {
+    getGraph(DEFAULT_SAMPLES, callback);
 }
 
-function getGraph(samples, algo, cb) {
+function getGraph(samples, callback) {
     $.ajax({
-        url: getBaseUrl() + '_get_cy_data/' + samples + "/" + algo,
+        url: getBaseUrl() + '_get_cy_data/' + samples,
         dataType: 'json',
         async: true,
         success: function (data) {
@@ -44,24 +44,33 @@ function getGraph(samples, algo, cb) {
                 n.locked = false;
             });
 
-            cb(data);
+            callback(data);
         }
     });
 }
 
-function getIntercitationGraph(src, dst, cb) {
+function getIntercitationGraph(src, dst, algo, callback) {
     $.ajax({
-        url: getBaseUrl() + '_get_intercitation/' + src + "/" + dst,
+        url: getBaseUrl() + '_get_intercitation/' + src + "/" + dst + "/" + algo,
         dataType: 'json',
         async: true,
         success: function (data) {
             console.log("received intercitation data");
             console.log(data);
 
-            cb(data);
+            data.nodes.forEach(function(n) {
+                var c = Math.floor(n.data.coverage * 6) + 3;
+                n.style = {
+                    backgroundColor: "#3" + c + "3"
+                };
+                n.grabbable = false;
+                n.locked = false;
+            });
+            callback(data);
         },
         error: function (xhr, string, error) {
-            resetGraph()
+            console.log("error...");
+            grapher.update()
         }
     });
 }
@@ -70,84 +79,58 @@ function getIntercitationGraph(src, dst, cb) {
 var grapher = {
     cy: null,
     reset: function () {
+        console.log("called reset");
+
+        $("#cs-loader").fadeIn();
+        $("#cy").fadeOut();
         clearGraph(this.cy);
 
-        $("#samplesOpt").val(DEFAULT_SAMPLES);
         $("#algorithmOpt").val(DEFAULT_ALGO);
 
         getFullGraph(function (data) {
             this.cy = createCytoscapeGraph(data);
+
+            $("#cs-loader").fadeOut();
+            $("#cy").fadeIn();
+
+            this.cy.fit(200)
         });
     },
     drawIntercitation: function (src, dst) {
-        clearGraph(this.cy);
+        console.log("called intercitation");
 
-        getIntercitationGraph(src, dst, function (data) {
-            this.cy = createCytoscapeGraph(data);
-        });
-    },
-    update: function (data) {
+        $("#cs-loader").fadeIn();
+        $("#cy").fadeOut();
         clearGraph(this.cy);
 
         var algo = $("#algorithmOpt").val();
+
+        getIntercitationGraph(src, dst, algo, function (data) {
+            this.cy = createCytoscapeGraph(data);
+
+
+            $("#cs-loader").fadeOut();
+            $("#cy").fadeIn();
+            this.cy.fit(200)
+        });
+    },
+    update: function () {
+        console.log("called update");
+        $("#cs-loader").fadeIn();
+        $("#cy").fadeOut();
+        clearGraph(this.cy);
+
         var samples = $("#samplesOpt").val();
 
-        getGraph(samples, algo, function(data) {
+        getGraph(samples, function (data) {
             this.cy = createCytoscapeGraph(data);
+            $("#cs-loader").fadeOut();
+            $("#cy").fadeIn();
+            this.cy.fit(200)
         });
 
     }
 };
-
-function refreshElements() {
-
-    $.ajax({
-        url: getBaseUrl() + '_get_cy_data',
-        dataType: 'json',
-        async: false,
-        success: function (data) {
-            //console.log(data)
-            cydata = data;
-            cydata.nodes.forEach(function (n) {
-                n.grabbable = true;
-                n.locked = false;
-            });
-        }
-    });
-}
-
-
-function getIntercitationTree(src, dst) {
-    $.ajax({
-        url: getBaseUrl() + '_get_intercitation/' + src + "/" + dst,
-        dataType: 'json',
-        async: false,
-        success: function (data) {
-            intercitation = data;
-            console.log(data);
-
-            cy.destroy();
-            cy = createNewVis(data);
-            bindEvents();
-        },
-        error: function (xhr, string, error) {
-            resetGraph()
-        }
-    });
-}
-
-function resetGraph() {
-
-    clicked_nodes = [];
-    if (cy != null) {
-        cy.destroy();
-    }
-
-    refreshElements();
-    console.log(cydata);
-    cy = createNewVis(cydata);
-    bindEvents();
-}
 
 function bindEvents(cy) {
     //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
@@ -173,7 +156,7 @@ function bindEvents(cy) {
             clicked_nodes.push(n.data('id'));
             console.log("intercitation for these nodes: " + clicked_nodes)
 
-            getIntercitationTree(clicked_nodes[0], clicked_nodes[1]);
+            grapher.drawIntercitation(clicked_nodes[0], clicked_nodes[1]);
             clicked_nodes = [];
         } else {
             clicked_nodes.push(n.data('id'));
@@ -229,5 +212,4 @@ function createNewVis(data) {
 
 $(function () { // on dom ready
     grapher.reset();
-    //resetGraph();
 });

@@ -11,34 +11,43 @@ from tree_intersection import TreeIntersection
 
 app = Flask(__name__)
 
-SAMPLES_TO_LOAD = 3000
+SAMPLES_TO_LOAD = 5000
 NODE_COUNT_SCALER = 50
 
 def num_edges_to_remove(size):
-    return math.floor(max(0, size - 300) * .9)
+    return math.floor(max(0, size - 100) * .95)
 
 
 def num_nodes_to_remove(size):
     return math.floor(max(0, size - 300) * .2)
 
 
-def get_global_graph():
+def get_global_graph(num_samples=SAMPLES_TO_LOAD):
     # Load a corpus into memory
-    #loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
-    #g = loader.get_graph('stanford-hepth')
 
-    return global_graph
+    g = global_graph.copy()
+    nodes = g.nodes()
+    random.seed(1)
+    samples = random.sample(nodes, int(min(num_samples, len(nodes))))
+    subgraph = nx.DiGraph(g.subgraph(samples));
+
+    return subgraph
 
 def sparsify_graph(g):
+
     print "sparsifying"
-    edges = g.edges()
-    print "removing edges: " + str(num_edges_to_remove(len(edges)))
-    remove = random.sample(edges, int(num_edges_to_remove(len(edges))))
-    g.remove_edges_from(remove)
+
+    random.seed(1)
 
     nodes = g.nodes()
     rm = random.sample(nodes, int(num_nodes_to_remove(len(nodes))))
     g.remove_nodes_from(rm)
+
+    edges = g.edges()
+    # print "removing edges: " + str(num_edges_to_remove(len(edges)))
+    remove = random.sample(edges, int(num_edges_to_remove(len(edges))))
+    g.remove_edges_from(remove)
+
     return g
 
 
@@ -51,7 +60,7 @@ def assign_relative_positions(graph):
     '''
     print "assigning relative col/rows to graph"
     years = list(set([attrdict["year"] for n, attrdict in graph.node.items()]))
-    print years
+    # print years
     yearGraphDict = {}
     for year in years:
         yearGraphDict[year] = [n for n, attrdict in graph.node.items() if attrdict["year"] == year]
@@ -63,27 +72,27 @@ def assign_relative_positions(graph):
         j = -len(papers) / 2.
 
         for n in papers:
-            mos_scale = float(graph.node[n]['date']) / 12. - .5
+            mos_scale = float(graph.node[n]['date']) / 12. - .4
 
             graph.node[n]['row'] = i + mos_scale
             graph.node[n]['col'] = j
             j += 1
         i += row_scaler
 
-    print graph
-    nx.info(graph)
+    # print graph
+    # nx.info(graph)
     return graph
 
 
-@app.route('/_get_intercitation/<src>/<dst>')
-def get_intercitation(src, dst):
+@app.route('/_get_intercitation/<src>/<dst>/<algo>')
+def get_intercitation(src, dst, algo):
     graph = get_global_graph()
 
     nodes = [graph.node[src], graph.node[dst]]
     nodes = sorted(nodes, key=lambda n: (n['year'], n['date']))
 
     print 'getting nodes...'
-    print nodes
+    # print nodes
 
     t = TreeIntersection()
 
@@ -95,22 +104,26 @@ def get_intercitation(src, dst):
     citing_relevance_parameter = 0.20
     #SWITCH HERE BASED ON USER PARAMS
     #do nothing if selected full intercitation
-    #dag = t.add_relevant_citing_nodes(dag, graph, citing_relevance_parameter)
-    #dag = t.add_cited_citing_nodes(dag, graph)
+    if algo == "netrel":
+        print "getting netrel"
+        dag = t.add_relevant_citing_nodes(dag, graph, citing_relevance_parameter)
+    elif algo == "bushy":
+        print "getting bushy"
+        dag = t.add_cited_citing_nodes(dag, graph)
 
     num_concepts = int(2*math.log(len(list(dag.nodes()))))
     print "extracting concepts"
     concepts = concept_help.extract(dag,nodes[1]['abstract'], nodes[0]['abstract'],num_concepts)
-    print "Extracted concepts:",concepts
+    # print "Extracted concepts:",concepts
     influence_helper.reset_concepts(concepts)
     print "Constructing influence_helper.graph"
     influence_helper.construct_influence_graph(loader.get_author_dict())
-    print "Sample to compute influence_helper. for concepts"
-    influence_helper.compute_document_pair_influences(0.05)#0.05 error prob
+    # print "Sample to compute influence_helper. for concepts"
+    influence_helper.compute_document_pair_influences(0.2)#0.05 error prob
     igraph = influence_helper.get_influence_graph()
 
     print "Creating coherence graph"
-    num_chains = 30*len(list(dag.nodes()))
+    num_chains = 25*len(list(dag.nodes()))
     min_length_chains = 2
     min_coherence = 0.001
     print "Initializing cohrence graph"
@@ -125,20 +138,23 @@ def get_intercitation(src, dst):
 
     print "Ranking intercitation tree based on coverage"
     dag = cohG.rank_dag_according_to_coverage(dag)
-
-    for d in dag.nodes():
-        print dag.node[d]['coverage']
+    #
+    # for d in dag.nodes():
+    #     print dag.node[d]['coverage']
 
     s = nx.DiGraph(graph.subgraph(dag.nodes()).copy())
+    for d in dag.nodes():
+        s.node[d]['coverage'] = dag.node[d]['coverage']/float(len(dag.nodes()))
+
     g = assign_relative_positions(s)
 
     return jsonify(convert_networkx(g)['elements'])
 
 
-@app.route("/_get_cy_data")
-def get_full_graph():
-    print "called get_cy_data"
-    graph = get_global_graph()
+@app.route("/_get_cy_data/<size>")
+def get_full_graph(size):
+    print "generating graph of size: " + str(size)
+    graph = get_global_graph(num_samples=int(size))
     sparsify_graph(graph)
     g = assign_relative_positions(graph)
     c = convert_networkx(g)['elements']

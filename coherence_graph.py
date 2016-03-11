@@ -149,7 +149,7 @@ class coherence_graph:
 
       #Collect walk tallies for all chains, sum and add to nodes in the influence graph
       for chain in self.cohGraph.nodes():
-        print "Chain:",chain," - ",self.cohGraph.node[chain]['walk-tally']/float(num_samples)
+        # print "Chain:",chain," - ",self.cohGraph.node[chain]['walk-tally']/float(num_samples)
         for node in chain:
           self.influence_graph.node[node]['coverage'] += self.cohGraph.node[chain]['walk-tally']
 

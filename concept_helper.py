@@ -36,7 +36,7 @@ class concept_helper:
     textblob = tb(textblob)
     scores = {word: tfidf(word,textblob,self.bloblist) for word in textblob.words}
     sorted_words = sorted(scores.items(), key=lambda x: x[1])
-    for word,score in sorted_words[:-1 * num_concepts]:
-      print("\tWord: {}, TF-IDF: {}".format(word, round(score, 5)))
+    # for word,score in sorted_words[:-1 * num_concepts]:
+    #   print("\tWord: {}, TF-IDF: {}".format(word, round(score, 5)))
     a = [x[0] for x in sorted_words[:-1*num_concepts]]
     return a[-num_concepts:]

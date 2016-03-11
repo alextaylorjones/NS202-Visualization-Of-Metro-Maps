@@ -1,111 +1,113 @@
 
 html {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 body {
-  font: 14px helvetica neue, helvetica, arial, sans-serif;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+    font: 14px helvetica neue, helvetica, arial, sans-serif;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 #cy {
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  bottom: 0px;
-  right: 0px;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+    z-index: 1;
 }
 
 .config {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 17em;
-  background: rgba(0, 0, 0, 0.75);
-  box-sizing: border-box;
-  padding: 1em;
-  color: #fff;
-  transition-property: opacity;
-  transition-duration: 250ms;
-  transition-timing-function: ease-out;
-  overflow: auto;
-  z-index: 1;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 17em;
+    background: rgba(0, 0, 0, 0.75);
+    box-sizing: border-box;
+    padding: 1em;
+    color: #fff;
+    transition-property: opacity;
+    transition-duration: 250ms;
+    transition-timing-function: ease-out;
+    overflow: auto;
+    z-index: 1;
 }
 
 .param {
-  margin-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 .preamble {
-  margin-bottom: 2em;
+    margin-bottom: 2em;
 }
 
 p {
-  margin: 0.5em 0;
-  font-size: 0.8em;
+    margin: 0.5em 0;
+    font-size: 0.8em;
 }
 
 .param button {
-  width: 3em;
-  margin-right: 0.25em;
+    width: 3em;
+    margin-right: 0.25em;
 }
 
 a,
 a:hover {
-  color: #62daea;
+    color: #62daea;
 }
 
 .label {
-  display: inline-block;
+    display: inline-block;
 }
 
 .slider {
-  display: block;
+    display: block;
 }
 
 .config-toggle {
-  position: absolute;
-  right: 0;
-  top: 0;
-  padding: 1em;
-  margin: 0.2em;
-  cursor: pointer;
-  color: #888;
-  z-index: 9999999;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 1em;
+    margin: 0.2em;
+    cursor: pointer;
+    color: #888;
+    z-index: 20;
 }
 
 .config-closed .config {
-  opacity: 0;
-  pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .config-closed #cy {
-  right: 0;
+    right: 0;
 }
 
-@media (max-width: 600px){
-  #cy {
-    right: 0;
-  }
+@media (max-width: 600px) {
+    #cy {
+        right: 0;
+    }
 }
 
 #tooltip {
-  position: absolute;
-  bottom: 0px;
+    position: absolute;
+    bottom: 0px;
+    z-index: 5;
 }
 
 #slider {
-  margin: 10px;
+    margin: 10px;
 }
 
-
-.graph_options{
-  float: left;
-  margin-left: 10px
+.graph_options {
+    float: left;
+    margin-left: 10px;
+    z-index: 50;
 }
 
 /* Dropdown menu */
@@ -136,7 +138,7 @@ a:hover {
     position: absolute;
     background-color: #f9f9f9;
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
 }
 
 /* Links inside the dropdown */
@@ -148,7 +150,18 @@ a:hover {
 }
 
 /* Change color of dropdown links on hover */
-.dropdown-content a:hover {background-color: #f1f1f1}
+.dropdown-content a:hover {
+    background-color: #f1f1f1
+}
 
 /* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
-.show {display:block;}
+.show {
+    display: block;
+}
+
+
+#header {
+    position: absolute;
+    top: 5px;
+    z-index: 50;
+}
