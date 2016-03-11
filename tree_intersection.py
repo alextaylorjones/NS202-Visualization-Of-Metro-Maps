@@ -129,11 +129,14 @@ class TreeIntersection:
         rev_citegraph = nx.reverse(citegraph, copy=True)
         cite_relevance_dict = {}
         citers_relevance_dict = {}
-
+        if dag == None:
+          print "No itersection dag"
+          return dag
         for node in citegraph:
             cited = set(citegraph.neighbors(node))
             if len(cited) == 0:
                 continue
+
             cite_relevance_dict[node] = -float( len(cited.intersection(set(dag.nodes()))) /len(cited))
 
         for node in citegraph:

@@ -3,7 +3,7 @@ import math
 from textblob import TextBlob as tb
 
 def tf(word, blob):
-  return blob.words.count(word) / len(blob.words)
+  return float(blob.words.count(word)) / len(blob.words)
 
 def n_containing(word, bloblist):
   return sum(1 for blob in bloblist if word in blob)
@@ -28,13 +28,14 @@ class concept_helper:
         self.bloblist.append(tb(graph.node[node]['abstract']))
       except:
         print "No abstract for node ",node
+
   def extract(self,graph,abs1,abs2, num_concepts):
     textblob = ''
     textblob += abs1
-    textblob += abs2 
+    textblob += abs2
     textblob = tb(textblob)
     scores = {word: tfidf(word,textblob,self.bloblist) for word in textblob.words}
-    sorted_words = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    sorted_words = sorted(scores.items(), key=lambda x: x[1])
     for word,score in sorted_words[:-1 * num_concepts]:
       print("\tWord: {}, TF-IDF: {}".format(word, round(score, 5)))
     a = [x[0] for x in sorted_words[:-1*num_concepts]]
