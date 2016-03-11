@@ -59,7 +59,7 @@ class influence_graph:
                 concept_dict = self.citation_graph.node[v]['concept_freq']
                 concept_dict[c] = concept_match_num
                 concepts_matched += concept_match_num
-            print "Concept freq(",self.citation_graph.node[v]['file_name'],"): ",self.citation_graph.node[v]['concept_freq'], "total - ", concepts_matched
+            #print "Concept freq(",self.citation_graph.node[v]['file_name'],"): ",self.citation_graph.node[v]['concept_freq'], "total - ", concepts_matched
             self.citation_graph.node[v]['doc_length'] = concepts_matched
 
        #Use node attributes to create an influence graph
