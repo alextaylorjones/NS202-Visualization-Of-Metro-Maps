@@ -18,10 +18,10 @@ def num_nodes_to_remove(size):
 
 def get_global_graph():
     # Load a corpus into memory
-    loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
-    g = loader.get_graph('stanford-hepth')
+    #loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
+    #g = loader.get_graph('stanford-hepth')
 
-    return g
+    return global_graph
 
 def sparsify_graph(g):
     print "sparsifying"
@@ -111,4 +111,8 @@ def index():
 
 
 if __name__ == "__main__":
+    loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
+    global_graph = loader.get_graph('stanford-hepth')
+
+
     app.run(debug=True)
