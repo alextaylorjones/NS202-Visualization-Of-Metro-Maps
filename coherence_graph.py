@@ -43,20 +43,20 @@ class coherence_graph:
         #Add all nodes to priority queue
         for node in dag.nodes():
             #All nodes have initially 0 coherence as chains
-            print "pushing node",node," to heap"
+            #print "pushing node",node," to heap"
             heappush(q,(-10,[node]))
             num_chains += 1
 
 
         while num_chains < self.threshold_num_chains:
             if (len(q)) == 0:
-                print "Out of choices to pop from heap"
+                #print "Out of choices to pop from heap"
                 break
             best_choice = heappop(q)
 
-            print best_choice, "is popped val"
+            #print best_choice, "is popped val"
             best_chain = best_choice[1]
-            print type(best_chain),"is type of chain of length ", len(best_chain)
+            #print type(best_chain),"is type of chain of length ", len(best_chain)
 
             # If chain is long enough, turn it into a vertex of G
             if len(best_chain) >= self.m_chain_length:
@@ -84,13 +84,15 @@ class coherence_graph:
                     if (chain_coherence < -self.min_coherence):
                         heappush(q,(chain_coherence,new_chain))
                         num_ext += 1
-                if (num_ext == 0):
-                    print "No more extensions possible"
+                #if (num_ext == 0):
+                
+                    #print "No more extensions possible"
                     #break
         print "Done computing chains"
             #Now convert nodes in coherence graph into paths, linking paths at all intersecting nodes
         for chain in chain_list:
             print str(chain), "coherence - ",self.calc_coherence(chain)
+            cohGraph.add_node(tuple(chain))
 
         for chain in chain_list:
             for other_chain in chain_list:
@@ -101,7 +103,7 @@ class coherence_graph:
                     if other_chain[1:] == chain[:-1]:
                         #print "Overlap",chain, " and ",other_chain
                         cohGraph.add_edge(tuple(other_chain),tuple(chain))
-        print "Num overlaps (Edges)",len(cohGraph.edges())
+        print "Num overlaps (Edges)",len(cohGraph.edges()), "num chains :",len(cohGraph.nodes())
 
         #Make sure construction made no loops
         assert(len(list(nx.simple_cycles(cohGraph))) == 0)
@@ -126,7 +128,7 @@ class coherence_graph:
       related_paper_dict = {}
       for neighbor in self.influence_graph.neighbors(p_start):
         edge_sum += sum([self.influence_graph.edge[p_start][neighbor]['weights'][c] for c in self.active_concepts])
-        print "p_start has influence of ", edge_sum, "with neighbor " , neighbor
+        #print "p_start has influence of ", edge_sum, "with neighbor " , neighbor
         related_paper_dict[neighbor] = edge_sum
 
       self.setup_random_dict_for_sampling(related_paper_dict)
@@ -152,8 +154,8 @@ class coherence_graph:
           self.influence_graph.node[node]['coverage'] += self.cohGraph.node[chain]['walk-tally']
 
       #DEBUG
-      for node in self.influence_graph.nodes():
-        print "Node:",node," coverage score ",self.influence_graph.node[node]['coverage']
+      #for node in self.influence_graph.nodes():
+      #  print "Node:",node," coverage score ",self.influence_graph.node[node]['coverage']
 
   #Walk from node in coherence graph
     def tally_walk_from(self,start):
@@ -164,7 +166,8 @@ class coherence_graph:
               starting_list.append(node)
 
       if (len(starting_list) == 0):
-        print "Empty list of chains to walk from for paper",start
+        #DEBUG
+        #print "Empty list of chains to walk from for paper",start
         return
 
       #Randomly select cohe)rence subchain to start at
@@ -195,8 +198,12 @@ class coherence_graph:
         print "Error in sampling"
         return self.sample_dist[-1]
 
-    def calculate_coverage(self,paper,descendant):
-        
-        #Find all matches of paper in
-        for node in self.cohGraph.nodes():
-           print 'l'
+    def rank_dag_according_to_coverage(self,dag):
+      scores = {node: self.influence_graph.node[node]['coverage'] for node in dag.nodes()}
+      sorted_scores = sorted(scores.items(),key=lambda x: x[1],reverse=True)
+      nx.set_node_attributes(dag,'coverage',0)
+      i = 0
+      for node,score in sorted_scores:
+        dag.node[node]['coverage'] = i
+        i += 1
+      return dag

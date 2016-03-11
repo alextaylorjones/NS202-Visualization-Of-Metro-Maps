@@ -119,6 +119,9 @@ class load_corpus:
                     for count,item in enumerate(author_split):
                         #print item, "item -> #",count
                         item = item.strip('\n')
+                        if item == ' ' or item == '':
+                            #print "Empty"
+                            continue
                         if (" and " not in item):
                             authors.append(item)
                             #print "Author:", item
@@ -152,8 +155,10 @@ class load_corpus:
                             else:
                                 self.author_dict[last_two_auth[1]].append(file_id)
                     meta_dict['authors'] = ""
-                    for a in authors:
-                        meta_dict['authors'] += a + ","
+                    for i,a in enumerate(authors):
+                        meta_dict['authors'] += a
+                        if len(authors) - 1 > i:
+                            meta_dict['authors'] += ','
                     #print meta_dict['authors']
 
                     #print authors[:]

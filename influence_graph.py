@@ -26,11 +26,25 @@ class influence_graph:
               continue
             self.influence_graph.add_edge(u,v,weights = dict((c,0) for c in _concepts))
 
+    def reset_concepts(self,concepts):
+        self.concepts = concepts
+        nx.set_edge_attributes(self.influence_graph,'weights',{})
+        nx.set_edge_attributes(self.concept_graph,'weights',{})
+
+        for e in self.concept_graph.edges():
+            for c in concepts:
+                self.concept_graph.edge[e[0]][e[1]]['weights'][c] = 0
+
+        for u in self.influence_graph.nodes():
+            for v in self.influence_graph.nodes():
+                if (u == v):
+                    continue
+                for c in concepts:
+                    self.influence_graph.edge[u][v]['weights'][c] = 0
 
     """ Call this once on a set of concepts to construct the influence graph from the concepts """
     def construct_influence_graph(self,author_dict):
         # Create a concept graph for each inputted concept
-
         #Using the concepts
         #Calculate the frequencies of all concepts in the abstracts and total document length
         #Add statistics to node attributes
@@ -129,11 +143,17 @@ class influence_graph:
         prev_papers= []
         authors = self.citation_graph.node[y]['authors'].split(',')
         #print self.citation_graph.node[y]['authors']
-        print authors[:], " are authors"
+        #print authors[:], " are authors"
 
         for auth in authors:
             #print "Getting all previously written papers by", auth
             for p in author_dict[auth]:
+                if p not in self.citation_graph:
+                  #print p," not in citation graph."
+                  continue
+                if y not in self.citation_graph:
+                  #print y," not in citation graph."
+                  continue
                 if self.citation_graph.node[p]['year'] < self.citation_graph.node[y]['year']:
                     #print "Adding ", p, " to previous papers list"
                     prev_papers.append(p)
