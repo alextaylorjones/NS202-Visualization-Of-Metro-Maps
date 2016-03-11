@@ -11,7 +11,7 @@ from tree_intersection import TreeIntersection
 
 app = Flask(__name__)
 
-SAMPLES_TO_LOAD = 2000
+SAMPLES_TO_LOAD = 3000
 NODE_COUNT_SCALER = 50
 
 
@@ -20,7 +20,7 @@ def num_edges_to_remove(size):
 
 
 def num_nodes_to_remove(size):
-    return math.floor(max(0, size - 300) * .5)
+    return math.floor(max(0, size - 300) * .2)
 
 
 def get_global_graph():
@@ -91,9 +91,14 @@ def get_intercitation(src, dst):
     print "getting intercitation dag"
     dag = t.get_intercitation_dag(nodes[1]['file_id'], nodes[0]['file_id'], graph)
     print "getting relevant citing nodes"
-    dag = t.add_relevant_citing_nodes(dag, graph, .25)
+    #citing param adds that many percentage of most related nodes in entire graph
+    #through common citations
+    citing_relevance_parameter = 0.20
+    #SWITCH HERE BASED ON USER PARAMS
+    #do nothing if selected full intercitation
+    #dag = t.add_relevant_citing_nodes(dag, graph, citing_relevance_parameter)
+    #dag = t.add_cited_citing_nodes(dag, graph)
 
-    # dag = t.add_cited_citing_nodes(dag, graph)
     num_concepts = int(2*math.log(len(list(dag.nodes()))))
     print "extracting concepts"
     concepts = concept_help.extract(dag,nodes[1]['abstract'], nodes[0]['abstract'],num_concepts)
