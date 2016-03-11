@@ -34,7 +34,9 @@ function getIntercitationTree(src, dst) {
             intercitation = data;
             console.log(data);
 
+            cy.destroy();
             cy = createNewVis(data);
+            bindEvents();
         },
         error: function(xhr, string, error) {
             resetGraph()
@@ -44,11 +46,12 @@ function getIntercitationTree(src, dst) {
 
 function resetGraph() {
     clicked_nodes = [];
+    if (cy != null) {
+        cy.destroy();
+    }
+
     refreshElements();
     console.log(cydata);
-    if (cy != null) {
-        cy.off();
-    }
     cy = createNewVis(cydata);
     bindEvents();
 }

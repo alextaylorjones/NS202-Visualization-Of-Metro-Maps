@@ -6,7 +6,7 @@ from coherence_graph import coherence_graph
 import matplotlib.pyplot as plt
 
 #Load a corpus into memory
-loader = load_corpus('/home/alex/classes/NS202/project/visualization-project/NS202-Visualization-Of-Metro-Maps/datasets/','Cit-HepTh.txt','stanford-hepth',500)
+loader = load_corpus('./datasets/','Cit-HepTh.txt','stanford-hepth',5000)
 citegraph = loader.get_graph('stanford-hepth')
 
 #Get influence graph

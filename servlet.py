@@ -5,23 +5,24 @@ import networkx as nx
 import random
 import math
 from tree_intersection import TreeIntersection
+
 app = Flask(__name__)
 
 SAMPLES_TO_LOAD = 5000
+NODE_COUNT_SCALER = 50
+
 
 def num_edges_to_remove(size):
-    return math.floor(max(0,  size - 300) * .7)
+    return math.floor(max(0, size - 300) * .7)
+
 
 def num_nodes_to_remove(size):
     return math.floor(max(0, size - 300) * .5)
 
 
 def get_global_graph():
-    # Load a corpus into memory
-    loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
-    g = loader.get_graph('stanford-hepth')
+    return global_graph.copy()
 
-    return g
 
 def sparsify_graph(g):
     print "sparsifying"
@@ -44,24 +45,25 @@ def assign_relative_positions(graph):
     :return:
     '''
     print "assigning relative col/rows to graph"
-    years = list(set([attrdict["year"] for n,attrdict in graph.node.items()]))
+    years = list(set([attrdict["year"] for n, attrdict in graph.node.items()]))
     print years
     yearGraphDict = {}
     for year in years:
-        yearGraphDict[year] = [n for n,attrdict in graph.node.items() if attrdict["year"] == year]
+        yearGraphDict[year] = [n for n, attrdict in graph.node.items() if attrdict["year"] == year]
 
     i = 0
+    row_scaler = max(1, max([len(p) for p in yearGraphDict.values()]) / NODE_COUNT_SCALER)
     for k in sorted(yearGraphDict.keys()):
         papers = yearGraphDict[k]
-        j = -len(papers)/2.
-        for n in papers:
-            mos_scale = float(graph.node[n]['date'])/12. - .5
+        j = -len(papers) / 2.
 
+        for n in papers:
+            mos_scale = float(graph.node[n]['date']) / 12. - .5
 
             graph.node[n]['row'] = i + mos_scale
             graph.node[n]['col'] = j
             j += 1
-        i += 1
+        i += row_scaler
 
     print graph
     nx.info(graph)
@@ -70,7 +72,6 @@ def assign_relative_positions(graph):
 
 @app.route('/_get_intercitation/<src>/<dst>')
 def get_intercitation(src, dst):
-
     graph = get_global_graph()
 
     nodes = [graph.node[src], graph.node[dst]]
@@ -111,4 +112,8 @@ def index():
 
 
 if __name__ == "__main__":
+    # Load a corpus into memory
+    loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
+    global_graph = loader.get_graph('stanford-hepth')
+
     app.run(debug=True)
