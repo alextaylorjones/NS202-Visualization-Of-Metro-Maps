@@ -14,11 +14,6 @@ app = Flask(__name__)
 SAMPLES_TO_LOAD = 2000
 NODE_COUNT_SCALER = 50
 
-ALGO = {
-    "intercitation":
-}
-
-
 def num_edges_to_remove(size):
     return math.floor(max(0, size - 300) * .9)
 
