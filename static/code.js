@@ -63,7 +63,7 @@ function getIntercitationGraph(src, dst, algo, callback) {
                 n.style = {
                     backgroundColor: "#3" + c + "3"
                 };
-                n.grabbable = false;
+                n.grabbable = true;
                 n.locked = false;
             });
             callback(data);
