@@ -7,6 +7,7 @@
 
     <title>Citation Network Demo</title>
 
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <link href="http://cdnjs.cloudflare.com/ajax/libs/qtip2/2.2.0/jquery.qtip.min.css" rel="stylesheet"/>
@@ -28,10 +29,14 @@
 </head>
 <body>
 <div id="header" style="align-content: center;width: 100%">
-<h1 style="align-self: center">Citation Graph Visualization</h1>
+    <h1 style="align-self: center">Citation Graph Visualization</h1>
+    <button onclick="resetGraph()">Reset</button>
+
 </div>
-<button onclick="resetGraph()">Reset</button>
+
+
+
 <div id="cy"></div>
-</div>
+<p id="tooltip"></p>
 </body>
 </html>

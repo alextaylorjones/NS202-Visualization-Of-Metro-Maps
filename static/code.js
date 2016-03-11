@@ -35,6 +35,9 @@ function getIntercitationTree(src, dst) {
             console.log(data);
 
             cy = createNewVis(data);
+        },
+        error: function(xhr, string, error) {
+            resetGraph()
         }
     });
 
@@ -42,39 +45,24 @@ function getIntercitationTree(src, dst) {
 }
 
 function resetGraph() {
+    clicked_nodes = [];
     refreshElements();
+    console.log(cydata);
+    if (cy != null) {
+        cy.off();
+    }
     cy = createNewVis(cydata);
-    bindEvents();
+    //bindEvents();
 }
 
 function bindEvents() {
     //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
     cy.on('mouseover', 'node', function (event) {
         var n = event.cyTarget;
+
         var g = "<b>" + n.data('title') + "</b>" + '<br>Authors: ' + n.data('authors') + '<br>Abstract:<br>' + n.data('abstract');
 
-
-        n.qtip({
-            content: g,
-            position: {
-                my: 'top center',
-                at: 'bottom center'
-            },
-            style: {
-                classes: 'qtip-bootstrap',
-                tip: {
-                    width: 100,
-                    height: 8
-                }
-            },
-            show: {
-                event: "mouseover"
-            },
-            hide: {
-                event: 'mouseout unfocus',
-                fixed: true,
-            }
-        }, event);
+        document.getElementById("tooltip").innerHTML = g
 
     });
 
@@ -98,8 +86,6 @@ function bindEvents() {
             cy.$('#' + n.data('id')).style('background-color', '#9e4711');
             console.log("adding to clicked node: " + clicked_nodes)
         }
-        //Updates the intercitation var
-        //getIntercitationTree(parseInt(n.data('file_id')));
     });
 
     $('#config-toggle').on('click', function () {
@@ -149,14 +135,9 @@ function createNewVis(data) {
 
 $(function () { // on dom ready
 
-    refreshElements()
-
-    console.log('test');
-    console.log(cydata);
-
-    cy = createNewVis(cydata);
-
+    resetGraph();
     bindEvents();
+
 
     //var intervalID = setInterval(function () {
     //    cy.nodes().forEach(function (n) {

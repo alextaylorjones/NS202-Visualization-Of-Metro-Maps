@@ -7,8 +7,7 @@ import math
 from tree_intersection import TreeIntersection
 app = Flask(__name__)
 
-SAMPLES_TO_LOAD = 200
-
+SAMPLES_TO_LOAD = 5000
 
 def num_edges_to_remove(size):
     return math.floor(max(0,  size - 300) * .7)
@@ -83,38 +82,14 @@ def get_intercitation(src, dst):
     t = TreeIntersection()
 
     dag = t.get_intercitation_dag(nodes[1]['file_id'], nodes[0]['file_id'], graph)
+    dag = t.add_relevant_citing_nodes(dag, graph, .25)
 
-    return jsonify(convert_networkx(dag)['elements'])
+    # dag = t.add_cited_citing_nodes(dag, graph)
 
+    s = nx.DiGraph(graph.subgraph(dag.nodes()).copy())
+    g = assign_relative_positions(s)
 
-
-
-
-    #
-    # node_id = str(node_id)
-    # # print "ID1:", node_id
-    # # print "Graph has", len(global_graph.nodes()), ' nodes'
-    # if ((node_id) in graph):
-    #     print "Global graph has node", node_id
-    #     related = []
-    #     related.extend(nx.ancestors(graph, node_id))
-    #     related.extend(nx.descendants(graph, node_id))
-    #     related.extend([node_id])
-    #
-    #     print related
-    #
-    #     s = nx.DiGraph(graph.subgraph(related).copy())
-    #
-    #     # print "returning subgraph"
-    #     # nx.info(s)
-    #     # print s.nodes()
-    #     # print s.edges()
-    #
-    #     g = assign_relative_positions(s)
-    #     sparsify_graph(g)
-    #
-    #     return jsonify(convert_networkx(g)['elements'])
-    # return []
+    return jsonify(convert_networkx(g)['elements'])
 
 
 @app.route("/_get_cy_data")
