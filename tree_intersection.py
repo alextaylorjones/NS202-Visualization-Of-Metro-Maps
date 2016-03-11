@@ -91,23 +91,23 @@ class TreeIntersection:
             #Compute all from old_node to intersect
             intercite_dag = nx.DiGraph()
             for dag_node in intersect:
-
                 #Iterate through all paths from old node to target
-                for path in nx.all_simple_paths(dag,source=old_node,target=dag_node):
+                for path in nx.all_simple_paths(dag,source=old_node,target=dag_node, cutoff=int(1.5*nx.shortest_path_length(dag,old_node,dag_node))):
+                    print "path",path
                     #print path
                     for i,node in enumerate(path):
                         #print i
                         if (i < len(path)-1):
                            intercite_dag.add_edge(path[i],path[i+1])
-                for path in nx.all_simple_paths(dag,source=dag_node,target=new_node):
-                    #print path
+                for path in nx.all_simple_paths(dag,source=dag_node,target=new_node, cutoff=int(1.5*nx.shortest_path_length(dag,old_node,dag_node))):
+                    print "path2",path
                     for i,node in enumerate(path):
                         #print i
                         if (i < len(path)-1):
                            intercite_dag.add_edge(path[i],path[i+1])
 
             print "Intercite notes",intercite_dag.nodes()
-            x=raw_input()
+            #x=raw_input()
             return intercite_dag
 
     def add_cited_citing_nodes(self,dag, citegraph):
