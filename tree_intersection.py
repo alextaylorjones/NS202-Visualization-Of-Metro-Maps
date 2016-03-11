@@ -84,7 +84,7 @@ class TreeIntersection:
 
         # Intersect lineages to get ad tree
         intersect = desc.intersection(anc)
-
+        print "Intersection: ", intersect
         if (len(intersect) == 0):
             print "No common intercitations between ",old_node," and ",new_node
         else:
@@ -106,6 +106,8 @@ class TreeIntersection:
                         if (i < len(path)-1):
                            intercite_dag.add_edge(path[i],path[i+1])
 
+            print "Intercite notes",intercite_dag.nodes()
+            x=raw_input()
             return intercite_dag
 
     def add_cited_citing_nodes(self,dag, citegraph):

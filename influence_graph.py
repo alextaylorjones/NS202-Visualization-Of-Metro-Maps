@@ -129,7 +129,7 @@ class influence_graph:
         prev_papers= []
         authors = self.citation_graph.node[y]['authors'].split(',')
         #print self.citation_graph.node[y]['authors']
-        #print authors[:], " are authors"
+        print authors[:], " are authors"
 
         for auth in authors:
             #print "Getting all previously written papers by", auth

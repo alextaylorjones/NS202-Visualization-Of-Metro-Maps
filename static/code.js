@@ -18,7 +18,7 @@ function refreshElements() {
             //console.log(data)
             cydata = data;
             cydata.nodes.forEach(function (n) {
-                n.grabbable = false;
+                n.grabbable = true;
                 n.locked = false;
             });
         }
@@ -40,8 +40,6 @@ function getIntercitationTree(src, dst) {
             resetGraph()
         }
     });
-
-    bindEvents();
 }
 
 function resetGraph() {
@@ -52,7 +50,7 @@ function resetGraph() {
         cy.off();
     }
     cy = createNewVis(cydata);
-    //bindEvents();
+    bindEvents();
 }
 
 function bindEvents() {
@@ -136,7 +134,7 @@ function createNewVis(data) {
 $(function () { // on dom ready
 
     resetGraph();
-    bindEvents();
+    //bindEvents();
 
 
     //var intervalID = setInterval(function () {
