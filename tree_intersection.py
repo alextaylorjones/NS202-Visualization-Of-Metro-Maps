@@ -93,14 +93,14 @@ class TreeIntersection:
             for dag_node in intersect:
                 #Iterate through all paths from old node to target
                 for path in nx.all_simple_paths(dag,source=old_node,target=dag_node, cutoff=int(1.5*nx.shortest_path_length(dag,old_node,dag_node))):
-                    print "path",path
+                    #print "path",path
                     #print path
                     for i,node in enumerate(path):
                         #print i
                         if (i < len(path)-1):
                            intercite_dag.add_edge(path[i],path[i+1])
                 for path in nx.all_simple_paths(dag,source=dag_node,target=new_node, cutoff=int(1.5*nx.shortest_path_length(dag,old_node,dag_node))):
-                    print "path2",path
+                    #print "path2",path
                     for i,node in enumerate(path):
                         #print i
                         if (i < len(path)-1):
@@ -129,11 +129,14 @@ class TreeIntersection:
         rev_citegraph = nx.reverse(citegraph, copy=True)
         cite_relevance_dict = {}
         citers_relevance_dict = {}
-
+        if dag == None:
+          print "No itersection dag"
+          return dag
         for node in citegraph:
             cited = set(citegraph.neighbors(node))
             if len(cited) == 0:
                 continue
+
             cite_relevance_dict[node] = -float( len(cited.intersection(set(dag.nodes()))) /len(cited))
 
         for node in citegraph:

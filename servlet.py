@@ -1,6 +1,9 @@
 from flask import Flask, jsonify, render_template, request
 from utils import random_network, convert_networkx
+from influence_graph import influence_graph
 from load_corpus import load_corpus
+from concept_helper import concept_helper
+from coherence_graph import coherence_graph
 import networkx as nx
 import random
 import math
@@ -8,7 +11,7 @@ from tree_intersection import TreeIntersection
 
 app = Flask(__name__)
 
-SAMPLES_TO_LOAD = 5000
+SAMPLES_TO_LOAD = 2000
 NODE_COUNT_SCALER = 50
 
 ALGO = {
@@ -25,8 +28,11 @@ def num_nodes_to_remove(size):
 
 
 def get_global_graph():
-    return global_graph.copy()
+    # Load a corpus into memory
+    #loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
+    #g = loader.get_graph('stanford-hepth')
 
+    return global_graph
 
 def sparsify_graph(g):
     print "sparsifying"
@@ -92,6 +98,36 @@ def get_intercitation(src, dst):
     dag = t.add_relevant_citing_nodes(dag, graph, .25)
 
     # dag = t.add_cited_citing_nodes(dag, graph)
+    num_concepts = int(2*math.log(len(list(dag.nodes()))))
+    print "extracting concepts"
+    concepts = concept_help.extract(dag,nodes[1]['abstract'], nodes[0]['abstract'],num_concepts)
+    print "Extracted concepts:",concepts
+    influence_helper.reset_concepts(concepts)
+    print "Constructing influence_helper.graph"
+    influence_helper.construct_influence_graph(loader.get_author_dict())
+    print "Sample to compute influence_helper. for concepts"
+    influence_helper.compute_document_pair_influences(0.05)#0.05 error prob
+    igraph = influence_helper.get_influence_graph()
+
+    print "Creating coherence graph"
+    num_chains = 30*len(list(dag.nodes()))
+    min_length_chains = 2
+    min_coherence = 0.001
+    print "Initializing cohrence graph"
+    cohG = coherence_graph(igraph,concepts,num_chains,min_length_chains,min_coherence)
+    print "Greedily creating coherence graph"
+    cohG.greedy_coherence_graph_create(dag)
+
+    num_samples = 1000
+    related_param = 0.2
+    print "Sampling coherent paths"
+    cohG.randomly_sample_coherent_paths(nodes[1]['file_id'], num_samples,related_param)
+
+    print "Ranking intercitation tree based on coverage"
+    dag = cohG.rank_dag_according_to_coverage(dag)
+
+    for d in dag.nodes():
+        print dag.node[d]['coverage']
 
     s = nx.DiGraph(graph.subgraph(dag.nodes()).copy())
     g = assign_relative_positions(s)
@@ -116,8 +152,13 @@ def index():
 
 
 if __name__ == "__main__":
-    # Load a corpus into memory
+    print "Loading global graph"
     loader = load_corpus('./datasets/', 'Cit-HepTh.txt', 'stanford-hepth', SAMPLES_TO_LOAD)
     global_graph = loader.get_graph('stanford-hepth')
+    init_concepts = []
+    print "Initializing influence graph helper"
+    influence_helper = influence_graph(global_graph, init_concepts)
+    print "Initializing concept helper"
+    concept_help = concept_helper(global_graph)
 
     app.run(debug=True)
