@@ -114,7 +114,7 @@ def get_intercitation(src, dst, algo):
     num_concepts = int(2*math.log(len(list(dag.nodes()))))
     print "extracting concepts"
     concepts = concept_help.extract(dag,nodes[1]['abstract'], nodes[0]['abstract'],num_concepts)
-    # print "Extracted concepts:",concepts
+    print "Extracted concepts:",concepts
     influence_helper.reset_concepts(concepts)
     print "Constructing influence_helper.graph"
     influence_helper.construct_influence_graph(loader.get_author_dict())
@@ -144,7 +144,7 @@ def get_intercitation(src, dst, algo):
 
     s = nx.DiGraph(graph.subgraph(dag.nodes()).copy())
     for d in dag.nodes():
-        s.node[d]['coverage'] = dag.node[d]['coverage']/float(len(dag.nodes()))
+        s.node[d]['coverage'] = 1. - dag.node[d]['coverage']/float(len(dag.nodes()))
 
     g = assign_relative_positions(s)
 

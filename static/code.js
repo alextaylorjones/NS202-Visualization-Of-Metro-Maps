@@ -65,6 +65,18 @@ function getIntercitationGraph(src, dst, algo, callback) {
                 };
                 n.grabbable = true;
                 n.locked = false;
+
+                data.edges.forEach(function (edge) {
+                    if (edge.data.source == n.data.id || edge.data.target == n.data.id) {
+                        var opacity = 1;
+                        if (edge.style != null) {
+                            opacity = Math.min(edge.style.opacity, opacity);
+                        }
+                        edge.style = {
+                            opacity: Math.min(n.data.coverage, opacity)
+                        };
+                    }
+                });
             });
             callback(data);
         },
@@ -107,7 +119,6 @@ var grapher = {
 
         getIntercitationGraph(src, dst, algo, function (data) {
             this.cy = createCytoscapeGraph(data);
-
 
             $("#cs-loader").fadeOut();
             $("#cy").fadeIn();
