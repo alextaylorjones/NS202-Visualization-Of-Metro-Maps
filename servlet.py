@@ -177,4 +177,4 @@ if __name__ == "__main__":
     print "Initializing concept helper"
     concept_help = concept_helper(global_graph)
 
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
