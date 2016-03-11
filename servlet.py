@@ -7,8 +7,7 @@ import math
 from tree_intersection import TreeIntersection
 app = Flask(__name__)
 
-SAMPLES_TO_LOAD = 2000
-
+SAMPLES_TO_LOAD = 5000
 
 def num_edges_to_remove(size):
     return math.floor(max(0,  size - 300) * .7)
@@ -83,6 +82,7 @@ def get_intercitation(src, dst):
     t = TreeIntersection()
 
     dag = t.get_intercitation_dag(nodes[1]['file_id'], nodes[0]['file_id'], graph)
+    dag = t.add_relevant_citing_nodes(dag, graph, .25)
 
     # dag = t.add_cited_citing_nodes(dag, graph)
 

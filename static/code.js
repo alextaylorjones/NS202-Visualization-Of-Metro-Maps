@@ -48,9 +48,11 @@ function resetGraph() {
     clicked_nodes = [];
     refreshElements();
     console.log(cydata);
+    if (cy != null) {
+        cy.off();
+    }
     cy = createNewVis(cydata);
-    cy.off();
-    bindEvents();
+    //bindEvents();
 }
 
 function bindEvents() {
@@ -133,7 +135,8 @@ function createNewVis(data) {
 
 $(function () { // on dom ready
 
-    resetGraph()
+    resetGraph();
+    bindEvents();
 
 
     //var intervalID = setInterval(function () {
