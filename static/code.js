@@ -1,6 +1,9 @@
-var cy;
-var cydata;
-var intercitation;
+//var cy;
+//var cydata;
+//var intercitation;
+
+var DEFAULT_SAMPLES = "5000";
+var DEFAULT_ALGO = "intercitation";
 
 var clicked_nodes = [];
 
@@ -9,7 +12,95 @@ function getBaseUrl() {
     return re.exec(window.location.href);
 }
 
+function clearGraph(cy) {
+    clicked_nodes = [];
+    if (cy != null) {
+        cy.destroy();
+    }
+
+}
+
+function createCytoscapeGraph(graph) {
+    var cy = createNewVis(graph);
+    bindEvents(cy);
+    return cy;
+}
+
+function getFullGraph(cb) {
+    getGraph(DEFAULT_SAMPLES, DEFAULT_ALGO, cb);
+}
+
+function getGraph(samples, algo, cb) {
+    $.ajax({
+        url: getBaseUrl() + '_get_cy_data/' + samples + "/" + algo,
+        dataType: 'json',
+        async: true,
+        success: function (data) {
+            console.log("received full graph");
+            console.log(data)
+            //cydata = data;
+            data.nodes.forEach(function (n) {
+                n.grabbable = true;
+                n.locked = false;
+            });
+
+            cb(data);
+        }
+    });
+}
+
+function getIntercitationGraph(src, dst, cb) {
+    $.ajax({
+        url: getBaseUrl() + '_get_intercitation/' + src + "/" + dst,
+        dataType: 'json',
+        async: true,
+        success: function (data) {
+            console.log("received intercitation data");
+            console.log(data);
+
+            cb(data);
+        },
+        error: function (xhr, string, error) {
+            resetGraph()
+        }
+    });
+}
+
+
+var grapher = {
+    cy: null,
+    reset: function () {
+        clearGraph(this.cy);
+
+        $("#samplesOpt").val(DEFAULT_SAMPLES);
+        $("#algorithmOpt").val(DEFAULT_ALGO);
+
+        getFullGraph(function (data) {
+            this.cy = createCytoscapeGraph(data);
+        });
+    },
+    drawIntercitation: function (src, dst) {
+        clearGraph(this.cy);
+
+        getIntercitationGraph(src, dst, function (data) {
+            this.cy = createCytoscapeGraph(data);
+        });
+    },
+    update: function (data) {
+        clearGraph(this.cy);
+
+        var algo = $("#algorithmOpt").val();
+        var samples = $("#samplesOpt").val();
+
+        getGraph(samples, algo, function(data) {
+            this.cy = createCytoscapeGraph(data);
+        });
+
+    }
+};
+
 function refreshElements() {
+
     $.ajax({
         url: getBaseUrl() + '_get_cy_data',
         dataType: 'json',
@@ -25,6 +116,7 @@ function refreshElements() {
     });
 }
 
+
 function getIntercitationTree(src, dst) {
     $.ajax({
         url: getBaseUrl() + '_get_intercitation/' + src + "/" + dst,
@@ -38,13 +130,14 @@ function getIntercitationTree(src, dst) {
             cy = createNewVis(data);
             bindEvents();
         },
-        error: function(xhr, string, error) {
+        error: function (xhr, string, error) {
             resetGraph()
         }
     });
 }
 
 function resetGraph() {
+
     clicked_nodes = [];
     if (cy != null) {
         cy.destroy();
@@ -56,7 +149,7 @@ function resetGraph() {
     bindEvents();
 }
 
-function bindEvents() {
+function bindEvents(cy) {
     //partial pull from http://stackoverflow.com/questions/20993149/how-to-add-tooltip-on-mouseover-event-on-nodes-in-graph-with-cytoscape-js
     cy.on('mouseover', 'node', function (event) {
         var n = event.cyTarget;
@@ -71,8 +164,8 @@ function bindEvents() {
         var n = event.cyTarget;
         console.log('clicked node length: ' + clicked_nodes.length);
 
-        if (clicked_nodes.length == 1 && $.inArray(n.data('id'),  clicked_nodes) != -1){
-            cy.$('#'+ n.data('id')).style('background-color', '#11479e');
+        if (clicked_nodes.length == 1 && $.inArray(n.data('id'), clicked_nodes) != -1) {
+            cy.$('#' + n.data('id')).style('background-color', '#11479e');
             clicked_nodes = [];
             console.log("cleared background: " + n.data('id'))
         } else if (clicked_nodes.length == 1 && $.inArray(n.data('id'), clicked_nodes) == -1) {
@@ -81,7 +174,7 @@ function bindEvents() {
             console.log("intercitation for these nodes: " + clicked_nodes)
 
             getIntercitationTree(clicked_nodes[0], clicked_nodes[1]);
-            clicked_nodes =[];
+            clicked_nodes = [];
         } else {
             clicked_nodes.push(n.data('id'));
             cy.$('#' + n.data('id')).style('background-color', '#9e4711');
@@ -135,150 +228,6 @@ function createNewVis(data) {
 
 
 $(function () { // on dom ready
-
-    resetGraph();
-    //bindEvents();
-
-
-    //var intervalID = setInterval(function () {
-    //    cy.nodes().forEach(function (n) {
-    //        n.renderedPosition(
-    //            {
-    //                x: Math.floor(Math.random() * 1000),
-    //                y: Math.floor(Math.random() * 1000)
-    //            }
-    //        );
-    //    });
-    //}, 5000);
-//
-//    var params = {
-//        name: 'Dagre',
-//        nodeSpacing: 5,
-//        edgeLengthVal: 45,
-//        animate: true,
-//        randomize: false,
-//        maxSimulationTime: 1500
-//    };
-//    var layout = makeLayout();
-//    var running = false;
-//
-//    cy.on('layoutstart', function () {
-//        running = true;
-//    }).on('layoutstop', function () {
-//        running = false;
-//    });
-//
-//
-//    layout.run();
-//
-//    var $config = $('#config');
-//    var $btnParam = $('<div class="param"></div>');
-//    $config.append($btnParam);
-//
-//    var sliders = [
-//        {
-//            label: 'Edge length',
-//            param: 'edgeLengthVal',
-//            min: 1,
-//            max: 200
-//        },
-//
-//        {
-//            label: 'Node spacing',
-//            param: 'nodeSpacing',
-//            min: 1,
-//            max: 50
-//        }
-//    ];
-//
-//    var buttons = [
-//        {
-//            label: '<i class="fa fa-random"></i>',
-//            layoutOpts: {
-//                randomize: true,
-//                flow: null
-//            }
-//        },
-//
-//        {
-//            label: '<i class="fa fa-long-arrow-down"></i>',
-//            layoutOpts: {
-//                flow: {axis: 'y', minSeparation: 30}
-//            }
-//        }
-//    ];
-//
-//    sliders.forEach(makeSlider);
-//
-//    buttons.forEach(makeButton);
-//
-//    function makeLayout(opts) {
-//        params.randomize = false;
-//        params.edgeLength = function (e) {
-//            return params.edgeLengthVal / e.data('weight');
-//        };
-//
-//        for (var i in opts) {
-//            params[i] = opts[i];
-//        }
-//
-//        return cy.makeLayout(params);
-//    }
-//
-//    function makeSlider(opts) {
-//        var $input = $('<input></input>');
-//        var $param = $('<div class="param"></div>');
-//
-//        $param.append('<span class="label label-default">' + opts.label + '</span>');
-//        $param.append($input);
-//
-//        $config.append($param);
-//
-//        var p = $input.slider({
-//            min: opts.min,
-//            max: opts.max,
-//            value: params[opts.param]
-//        }).on('slide', _.throttle(function () {
-//            params[opts.param] = p.getValue();
-//
-//            layout.stop();
-//            layout = makeLayout();
-//            layout.run();
-//        }, 16)).data('slider');
-//    }
-//
-//    function makeButton(opts) {
-//        var $button = $('<button class="btn btn-default">' + opts.label + '</button>');
-//
-//        $btnParam.append($button);
-//
-//        $button.on('click', function () {
-//            layout.stop();
-//
-//            if (opts.fn) {
-//                opts.fn();
-//            }
-//
-//            layout = makeLayout(opts.layoutOpts);
-//            layout.run();
-//        });
-//    }
-//
-//    function restyleIntercitationTree() {
-//
-//        cy.startBatch();
-//
-//        var ele = intercitation.elements();
-//
-//        for (var i = 0; i < ele.length; i++) {
-//            var ele = ele[i];
-//
-//            console.log(ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ));
-//
-//        }
-//
-//        cy.endBatch();
-//    }
-//
-
+    grapher.reset();
+    //resetGraph();
 });

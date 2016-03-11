@@ -11,13 +11,17 @@ app = Flask(__name__)
 SAMPLES_TO_LOAD = 5000
 NODE_COUNT_SCALER = 50
 
+ALGO = {
+    "intercitation":
+}
+
 
 def num_edges_to_remove(size):
-    return math.floor(max(0, size - 300) * .7)
+    return math.floor(max(0, size - 300) * .9)
 
 
 def num_nodes_to_remove(size):
-    return math.floor(max(0, size - 300) * .5)
+    return math.floor(max(0, size - 300) * .3)
 
 
 def get_global_graph():
